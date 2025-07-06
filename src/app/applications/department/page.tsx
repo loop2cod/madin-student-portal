@@ -19,9 +19,7 @@ import {
   CheckCircle,
   XCircle,
   Clock,
-  AlertCircle,
-  Building,
-  Users
+  AlertCircle
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -29,25 +27,39 @@ interface DepartmentApplication {
   _id: string;
   applicationId: string;
   personalDetails: {
-    firstName: string;
-    lastName: string;
+    fullName?: string;
+    firstName?: string;
+    lastName?: string;
     email: string;
     mobile: string;
-    dateOfBirth: string;
-    gender: string;
+    dob?: string;
+    gender?: string;
   };
-  addressAndFamily: {
-    address: string;
-    city: string;
-    state: string;
-    pincode: string;
-  };
+  programSelections?: Array<{
+    programLevel: string;
+    programName: string;
+    mode?: string;
+    specialization?: string;
+    branchPreferences?: Array<{
+      branch: string;
+      priority: number;
+    }>;
+    selected: boolean;
+    priority: number;
+  }>;
   status: 'pending' | 'under_review' | 'approved' | 'rejected' | 'waitlisted';
-  department: string;
+  department?: string;
   createdAt: string;
   updatedAt: string;
   reviewedBy?: string;
   reviewedAt?: string;
+  educationDetailsExists?: boolean;
+  selectedProgramSummary?: {
+    programLevel: string;
+    programName: string;
+    mode?: string;
+    specialization?: string;
+  } | null;
   adminRemarks?: string;
   educationDetails?: any;
   paymentDetails?: any;
