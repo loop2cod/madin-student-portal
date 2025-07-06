@@ -3,69 +3,51 @@ import Cookies from "js-cookie";
 
 // || process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
-const API_URL = "https://madin-server.onrender.com"
+const API_URL = "http://localhost:8000"
 
 const axiosApi = axios.create({
   baseURL: API_URL,
   withCredentials: true,
 });
 
-// Function to refresh the token
-const refreshTokenApi = async () => {
-  try {
-    const response = await axiosApi.post(`/api/v1/auth/refresh`, {}, { withCredentials: true });
-
-    if (response?.data?.sessionOut) {
-      await axiosApi.post(`/api/v1/auth/logout`, {}, { withCredentials: true });
-
-      Cookies.set(
-        "toastMessage",
-        JSON.stringify({
-          message: "Your session has expired.",
-          description: "Please try again.",
-        }),
-        { expires: 1 }
-      );
-
-      window.location.href = '/auth'
-      throw new Error("Session expired, logging out.");
+// Request interceptor to add Authorization header
+axiosApi.interceptors.request.use(
+  (config) => {
+    const token = Cookies.get('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
-
-    if (response?.data?.success) {
-      return true;
-    } else {
-      throw new Error("Token refresh failed");
-    }
-  } catch (error) {
-    throw error;
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
   }
+);
+
+// Function to handle token expiration
+const handleTokenExpiration = () => {
+  Cookies.remove('token');
+  
+  Cookies.set(
+    "toastMessage",
+    JSON.stringify({
+      message: "Your session has expired.",
+      description: "Please log in again.",
+    }),
+    { expires: 1 }
+  );
+
+  window.location.href = '/auth/login';
 };
 
-// Axios response interceptor to handle token refresh on 401 errors
+// Axios response interceptor to handle token expiration on 401 errors
 axiosApi.interceptors.response.use(
   (response) => response,
   async (error) => {
-    const originalRequest = error.config;
-
-    if (
-      error.response &&
-      error.response.status === 401 &&
-      !originalRequest._retry &&
-      !error.response.sessionOut
-    ) {
-      originalRequest._retry = true;
-
-      try {
-        const newToken = await refreshTokenApi();
-        if (newToken) {
-          return axiosApi(originalRequest);
-        } else {
-          throw error;
-        }
-      } catch (refreshError) {
-        console.error("Refresh Token Error:", refreshError);
-        throw refreshError;
-      }
+    // Only handle token expiration for authenticated routes, not login
+    if (error.response && error.response.status === 401 && !error.config.url?.includes('/auth/login')) {
+      // Token expired or invalid, redirect to login
+      handleTokenExpiration();
     }
 
     return Promise.reject(error);

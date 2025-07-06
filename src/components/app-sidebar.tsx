@@ -3,6 +3,15 @@
 import * as React from "react"
 import {
   GalleryVerticalEnd,
+  Users,
+  FileText,
+  Settings,
+  BarChart3,
+  UserPlus,
+  Shield,
+  Building,
+  LogOut,
+  User
 } from "lucide-react"
 import {
   Sidebar,
@@ -12,27 +21,140 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 import { NavMain } from "./nav-main";
-import { it } from "node:test";
+import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
-
-const data = {
-  navMain: [
+// Role-based navigation items
+const getNavigationItems = (user: any) => {
+  const items = [
     {
       title: "Dashboard",
-      url: "/",
+      url: "/dashboard",
       icon: GalleryVerticalEnd,
-    },
-        {
-          title: "View Admissions",
-          url: "/admissions",
-          icon: GalleryVerticalEnd,
-        },
-      ],
+      permission: "view_admin_dashboard"
+    }
+  ];
+
+  // Super Admin items
+  if (user?.role === 'super_admin') {
+    items.push(
+      {
+        title: "User Management",
+        url: "/users",
+        icon: Users,
+        permission: "view_all_users"
+      },
+      {
+        title: "All Applications",
+        url: "/applications",
+        icon: FileText,
+        permission: "view_all_applications"
+      },
+      {
+        title: "Analytics",
+        url: "/analytics",
+        icon: BarChart3,
+        permission: "view_analytics"
+      },
+      {
+        title: "System Settings",
+        url: "/settings",
+        icon: Settings,
+        permission: "manage_settings"
       }
-export default data;
+    );
+  }
+
+  // Admission Officer items
+  if (user?.role === 'admission_officer') {
+    items.push(
+      {
+        title: "Manage Users",
+        url: "/users",
+        icon: Users,
+        permission: "view_all_users"
+      },
+      {
+        title: "All Applications",
+        url: "/applications",
+        icon: FileText,
+        permission: "view_all_applications"
+      },
+      {
+        title: "Analytics",
+        url: "/analytics",
+        icon: BarChart3,
+        permission: "view_analytics"
+      },
+      {
+        title: "Add Staff",
+        url: "/users/create",
+        icon: UserPlus,
+        permission: "create_department_staff"
+      }
+    );
+  }
+
+  // Department Staff items
+  if (user?.role === 'department_staff') {
+    items.push(
+      {
+        title: "My Applications",
+        url: "/applications/department",
+        icon: FileText,
+        permission: "view_department_applications"
+      },
+      {
+        title: "Department",
+        url: "/department",
+        icon: Building,
+        permission: "view_department_applications"
+      }
+    );
+  }
+
+  return items;
+};
+
+const getRoleDisplayName = (role: string) => {
+  switch (role) {
+    case 'super_admin':
+      return 'Super Admin';
+    case 'admission_officer':
+      return 'Admission Officer';
+    case 'department_staff':
+      return 'Department Staff';
+    default:
+      return role;
+  }
+};
+
+const getRoleIcon = (role: string) => {
+  switch (role) {
+    case 'super_admin':
+      return <Shield className="w-3 h-3" />;
+    case 'admission_officer':
+      return <UserPlus className="w-3 h-3" />;
+    case 'department_staff':
+      return <Building className="w-3 h-3" />;
+    default:
+      return <User className="w-3 h-3" />;
+  }
+};
 
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { user, logout, hasPermission } = useAuth();
+  
+  // Get navigation items based on user role
+  const navigationItems = getNavigationItems(user);
+  
+  // Filter items based on permissions
+  const filteredItems = navigationItems.filter(item => 
+    !item.permission || hasPermission(item.permission as any)
+  );
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -46,15 +168,49 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <span className="truncate font-semibold">
               MADIN
             </span>
-            <span className="truncate text-xs">Collage of Engineering & Management</span>
+            <span className="truncate text-xs">College of Engineering & Management</span>
           </div>
         </div>
       </SidebarHeader>
+      
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={filteredItems} />
       </SidebarContent>
+      
       <SidebarFooter>
-
+        {user && (
+          <div className="p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="flex-1">
+                <p className="text-sm font-medium">{user.name}</p>
+                <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2 mb-3">
+              <Badge variant="secondary" className="text-xs">
+                {getRoleIcon(user.role)}
+                <span className="ml-1">{getRoleDisplayName(user.role)}</span>
+              </Badge>
+              {user.department && (
+                <Badge variant="outline" className="text-xs">
+                  <Building className="w-3 h-3 mr-1" />
+                  {user.department}
+                </Badge>
+              )}
+            </div>
+            
+            <Button 
+              onClick={logout}
+              variant="ghost" 
+              size="sm" 
+              className="w-full justify-start"
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Logout
+            </Button>
+          </div>
+        )}
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
