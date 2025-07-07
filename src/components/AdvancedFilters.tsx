@@ -112,7 +112,7 @@ export function AdvancedFilters({
         </div>
 
         {/* Department Filter - Only show for non-department staff */}
-        {userRole !== 'department_staff' && (
+        {/* {userRole !== 'department_staff' && (
           <div className="space-y-2">
             <Label>Departments</Label>
             <Popover>
@@ -153,7 +153,7 @@ export function AdvancedFilters({
               </PopoverContent>
             </Popover>
           </div>
-        )}
+        )} */}
 
         {/* Current Stage Filter */}
         <div className="space-y-2">
@@ -176,7 +176,7 @@ export function AdvancedFilters({
       {/* Active Filters Display */}
       {hasActiveFilters && (
         <Card>
-          <CardHeader className="pb-3">
+          <CardHeader>
             <CardTitle className="text-sm flex items-center justify-between">
               Active Filters
               <Button

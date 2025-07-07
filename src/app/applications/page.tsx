@@ -290,9 +290,9 @@ export default function ApplicationsPage() {
     return (
       <ProtectedRoute requiredPermissions={['view_all_applications', 'view_department_applications']}>
         <DashboardLayout title="Applications">
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
-          </div>
+            <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-4 border-blue-900 border-t-transparent rounded-full"></div>
+      </div>
         </DashboardLayout>
       </ProtectedRoute>
     );

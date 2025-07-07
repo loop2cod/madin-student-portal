@@ -31,6 +31,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { useToast } from '@/components/ui/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
@@ -54,6 +64,8 @@ export default function UsersPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState<any>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -94,38 +106,44 @@ export default function UsersPage() {
         title: "Success",
         description: `User ${currentStatus ? 'deactivated' : 'activated'} successfully`,
       });
-    } catch (error) {
+    } catch (error:any) {
       console.error('Failed to toggle user status:', error);
       toast({
         title: "Error",
-        description: "Failed to update user status",
+        description: error.response?.data?.message ||"Failed to update user status",
         variant: "destructive",
       });
     }
   };
 
-  const handleDeleteUser = async (userId: string) => {
-    if (!window.confirm('Are you sure you want to delete this user?')) {
-      return;
-    }
+  const handleDeleteUser = (userId: string) => {
+    setUserToDelete(userId);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteUser = async () => {
+    if (!userToDelete) return;
 
     try {
-      await del(`/api/v1/admin/users/${userId}`);
+      await del(`/api/v1/admin/users/${userToDelete}`);
 
       // Remove from local state
-      setUsers(users.filter(user => user.id !== userId));
+      setUsers(users.filter(user => user.id !== userToDelete));
 
       toast({
         title: "Success",
         description: "User deleted successfully",
       });
-    } catch (error) {
+    } catch (error:any) {
       console.error('Failed to delete user:', error);
       toast({
         title: "Error",
-        description: "Failed to delete user",
+        description: error.response?.data?.message ||"Failed to delete user",
         variant: "destructive",
       });
+    } finally {
+      setDeleteDialogOpen(false);
+      setUserToDelete(null);
     }
   };
 
@@ -167,9 +185,9 @@ export default function UsersPage() {
     return (
       <ProtectedRoute requiredPermissions={['view_all_users']}>
         <DashboardLayout title="User Management">
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
-          </div>
+             <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-4 border-blue-900 border-t-transparent rounded-full"></div>
+      </div>
         </DashboardLayout>
       </ProtectedRoute>
     );
@@ -362,6 +380,23 @@ export default function UsersPage() {
           </Card>
         </div>
       </DashboardLayout>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete User</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this user? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteUser} className="bg-red-600 hover:bg-red-700">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </ProtectedRoute>
   );
 }

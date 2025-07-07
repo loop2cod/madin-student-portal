@@ -404,8 +404,7 @@ export default function Dashboard() {
                           <div className="flex items-start justify-between">
                             <div>
                               <p className="text-sm font-semibold text-gray-900">
-                                {admission.personalDetails.fullName ||
-                                 `${admission.personalDetails.firstName} ${admission.personalDetails.lastName}`}
+                                {admission.personalDetails?.fullName}
                               </p>
                               <p className="text-xs text-gray-600 font-medium">
                                 ID: {admission.applicationId}

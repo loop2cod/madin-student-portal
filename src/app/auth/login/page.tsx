@@ -120,7 +120,7 @@ export default function LoginPage() {
             </Button>
           </form>
           
-          <div className="mt-6 text-center text-sm text-gray-500">
+          {/* <div className="mt-6 text-center text-sm text-gray-500">
             <p className="font-medium mb-2">Test Credentials:</p>
             <div className="space-y-2 text-xs">
               <div className="p-2 bg-blue-50 rounded">
@@ -136,7 +136,7 @@ export default function LoginPage() {
                 <p>civil@madin.edu / Civil@123</p>
               </div>
             </div>
-          </div>
+          </div> */}
         </CardContent>
       </Card>
     </div>
