@@ -19,7 +19,10 @@ import {
   CheckCircle,
   XCircle,
   Clock,
-  AlertCircle
+  AlertCircle,
+  Edit3,
+  History,
+  Calendar
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -161,6 +164,8 @@ export default function ApplicationDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [statusUpdateLoading, setStatusUpdateLoading] = useState(false);
   const [remarks, setRemarks] = useState('');
+  const [auditLogs, setAuditLogs] = useState([]);
+  const [loadingAuditLogs, setLoadingAuditLogs] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -174,6 +179,11 @@ export default function ApplicationDetailPage() {
         if (response.success) {
           setApplicationData(response.data);
           setRemarks(response.data.adminRemarks || '');
+          
+          // Fetch audit logs if user has edit permissions
+          if (hasPermission('edit_applications')) {
+            fetchAuditLogs();
+          }
         } else {
           throw new Error(response.message || 'Failed to fetch application data');
         }
@@ -190,7 +200,26 @@ export default function ApplicationDetailPage() {
     };
 
     fetchApplicationData();
-  }, [applicationId, toast]);
+  }, [applicationId, toast, hasPermission]);
+
+  const fetchAuditLogs = async () => {
+    if (!applicationId) return;
+
+    setLoadingAuditLogs(true);
+    try {
+      const response = await get(`/api/v1/admission/admin/${applicationId}/audit-logs`);
+      
+      if (response.success) {
+        setAuditLogs(response.data.logs || []);
+      } else {
+        console.error('Failed to fetch audit logs:', response.message);
+      }
+    } catch (error) {
+      console.error('Error fetching audit logs:', error);
+    } finally {
+      setLoadingAuditLogs(false);
+    }
+  };
 
   const handleStatusUpdate = async (newStatus: string) => {
     if (!applicationData) return;
@@ -455,6 +484,17 @@ export default function ApplicationDetailPage() {
               <Badge variant="outline">
                 {getCurrentStageDisplay(applicationData.currentStage)}
               </Badge>
+              {/* Edit Button - Only for Super Admins and Admission Officers */}
+              {hasPermission('edit_applications') && (
+                <Button 
+                  onClick={() => router.push(`/applications/${applicationData.applicationId}/edit`)}
+                  size="sm" 
+                  className="bg-[#001c67] hover:bg-[#001c67]/90 text-white"
+                >
+                  <Edit3 className="w-4 h-4 mr-2" />
+                  Edit Application
+                </Button>
+              )}
             </div>
           </div>
 
@@ -869,26 +909,26 @@ export default function ApplicationDetailPage() {
                       <div>
                         <Label className="text-sm font-medium text-gray-700">Amount</Label>
                         <p className="text-sm text-gray-900">
-                          {applicationData.paymentDetails.application_fee.currency} {applicationData.paymentDetails.application_fee.amount}
+                          {applicationData?.paymentDetails?.application_fee?.currency} {applicationData?.paymentDetails?.application_fee?.amount}
                         </p>
                       </div>
                       <div>
                         <Label className="text-sm font-medium text-gray-700">Payment Status</Label>
-                        <Badge variant={applicationData.paymentDetails.application_fee.status === 'verified' ? 'default' : 'secondary'}>
-                          {applicationData.paymentDetails.application_fee.status}
+                        <Badge variant={applicationData?.paymentDetails?.application_fee?.status === 'verified' ? 'default' : 'secondary'}>
+                          {applicationData?.paymentDetails?.application_fee?.status}
                         </Badge>
                       </div>
                       <div>
                         <Label className="text-sm font-medium text-gray-700">Payment Method</Label>
-                        <p className="text-sm text-gray-900">{applicationData.paymentDetails.application_fee.paymentMethod}</p>
+                        <p className="text-sm text-gray-900">{applicationData?.paymentDetails?.application_fee?.paymentMethod}</p>
                       </div>
                       <div>
                         <Label className="text-sm font-medium text-gray-700">Payment Date</Label>
-                        <p className="text-sm text-gray-900">{formatDate(applicationData.paymentDetails.application_fee.createdAt)}</p>
+                        <p className="text-sm text-gray-900">{applicationData?.paymentDetails?.application_fee?.createdAt ? formatDate(applicationData?.paymentDetails?.application_fee?.createdAt) : 'NIL'}</p>
                       </div>
                       <div>
                         <Label className="text-sm font-medium text-gray-700">Receipt</Label>
-                        <p className="text-sm text-gray-900">{applicationData.paymentDetails.application_fee.receipt}</p>
+                        <p className="text-sm text-gray-900">{applicationData?.paymentDetails?.application_fee?.receipt}</p>
                       </div>
                     </div>
                   </CardContent>
@@ -922,6 +962,56 @@ export default function ApplicationDetailPage() {
                         </div>
                       )}
                     </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Audit Trail - Only visible to users with edit permissions */}
+              {hasPermission('edit_applications') && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center text-lg">
+                      <History className="w-5 h-5 mr-2" />
+                      Audit Trail
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {loadingAuditLogs ? (
+                      <div className="flex justify-center items-center py-8">
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+                        <span className="ml-3 text-gray-600">Loading audit logs...</span>
+                      </div>
+                    ) : auditLogs.length > 0 ? (
+                      <div className="space-y-4">
+                        {auditLogs.map((log: any, index: number) => (
+                          <div key={index} className="border-l-4 border-blue-500 pl-4 py-2">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-2">
+                                <Badge variant="outline" className="text-xs">
+                                  {log.section.replace('_', ' ').toUpperCase()}
+                                </Badge>
+                                <span className="text-sm font-medium text-gray-900">
+                                  {log.action.toUpperCase()}
+                                </span>
+                              </div>
+                              <div className="flex items-center space-x-2 text-xs text-gray-500">
+                                <Calendar className="w-3 h-3" />
+                                <span>{format(new Date(log.timestamp), 'dd/MM/yyyy hh:mm a')}</span>
+                              </div>
+                            </div>
+                            <p className="text-sm text-gray-700 mt-1">{log.description}</p>
+                            <div className="text-xs text-gray-500 mt-1">
+                              <span className="font-medium">By:</span> {log.editedBy.name} ({log.editedBy.email}) - {log.editedBy.role}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-gray-500">
+                        <History className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                        <p>No audit logs available</p>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               )}

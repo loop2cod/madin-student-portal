@@ -217,80 +217,89 @@ export default function Dashboard() {
                 </CardHeader>
                 <CardContent>
      <ScrollArea className="h-72  rounded-md border">
-                  <div>
-                    {stats?.recentAdmissions?.filter(admission => admission.department === user.department).slice(0, 5).map((admission) => {
-                      const selectedProgram = admission.programSelections?.find(p => p.selected);
-                      const createdDate = new Date(admission.createdAt).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric'
-                      });
+                  <div className="space-y-2">
+                    {(() => {
+                      const departmentApplications = stats?.recentAdmissions?.filter(admission => admission.department === user.department).slice(0, 5);
 
-                      return (
-                        <div
-                          key={admission._id}
-                          className="p-2 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow"
-                        >
-                          <div className="flex items-start justify-between">
-                            <div>
-                              <p className="text-sm font-semibold text-gray-900">
-                                {admission.personalDetails.fullName ||
-                                 `${admission.personalDetails.firstName} ${admission.personalDetails.lastName}`}
-                              </p>
-                              <p className="text-xs text-gray-600 font-medium">
-                                ID: {admission.applicationId}
-                              </p>
-                            </div>
-                            <Badge
-                              variant="secondary"
-                              className={getStatusColor(admission.status)}
-                            >
-                              {getStatusIcon(admission.status)}
-                              <span className="ml-1 capitalize">{admission.status}</span>
-                            </Badge>
+                      if (!departmentApplications || departmentApplications.length === 0) {
+                        return (
+                          <div className="text-center py-8">
+                            <FileText className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                            <p className="text-gray-500">No recent applications</p>
+                            <p className="text-xs text-gray-400 mt-1">Applications for {user.department} will appear here once submitted</p>
                           </div>
+                        );
+                      }
 
-                          <p className="text-xs text-gray-500 mb-3">
-                            Created: {createdDate}
-                          </p>
+                      return departmentApplications.map((admission) => {
+                        const selectedProgram = admission.programSelections?.find(p => p.selected);
+                        const createdDate = new Date(admission.createdAt).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric'
+                        });
 
-                          {selectedProgram && (
-                            <div className="bg-gray-50 p-1 rounded-md">
-                              <p className="text-xs font-medium text-gray-700 mb-1">Program Details:</p>
-                              <p className="text-xs text-gray-900 font-medium">{selectedProgram.programName}</p>
-                              <div className="flex flex-wrap gap-2 mt-2">
-                                <Badge variant="outline" className="text-xs">
-                                  Level: {selectedProgram.programLevel.toUpperCase()}
-                                </Badge>
-                                {selectedProgram.mode && (
+                        return (
+                          <div
+                            key={admission._id}
+                            className="p-2 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow"
+                          >
+                            <div className="flex items-start justify-between">
+                              <div>
+                                <p className="text-sm font-semibold text-gray-900">
+                                  {admission.personalDetails.fullName ||
+                                   `${admission.personalDetails.firstName} ${admission.personalDetails.lastName}`}
+                                </p>
+                                <p className="text-xs text-gray-600 font-medium">
+                                  ID: {admission.applicationId}
+                                </p>
+                              </div>
+                              <Badge
+                                variant="secondary"
+                                className={getStatusColor(admission.status)}
+                              >
+                                {getStatusIcon(admission.status)}
+                                <span className="ml-1 capitalize">{admission.status}</span>
+                              </Badge>
+                            </div>
+
+                            <p className="text-xs text-gray-500 mb-3">
+                              Created: {createdDate}
+                            </p>
+
+                            {selectedProgram && (
+                              <div className="bg-gray-50 p-1 rounded-md">
+                                <p className="text-xs font-medium text-gray-700 mb-1">Program Details:</p>
+                                <p className="text-xs text-gray-900 font-medium">{selectedProgram.programName}</p>
+                                <div className="flex flex-wrap gap-2 mt-2">
                                   <Badge variant="outline" className="text-xs">
-                                    Mode: {selectedProgram.mode}
+                                    Level: {selectedProgram.programLevel.toUpperCase()}
                                   </Badge>
-                                )}
-                                {selectedProgram.specialization && (
-                                  <Badge variant="outline" className="text-xs">
-                                    Specialization: {selectedProgram.specialization}
-                                  </Badge>
+                                  {selectedProgram.mode && (
+                                    <Badge variant="outline" className="text-xs">
+                                      Mode: {selectedProgram.mode}
+                                    </Badge>
+                                  )}
+                                  {selectedProgram.specialization && (
+                                    <Badge variant="outline" className="text-xs">
+                                      Specialization: {selectedProgram.specialization}
+                                    </Badge>
+                                  )}
+                                </div>
+                                {selectedProgram.branchPreferences && selectedProgram.branchPreferences.length > 0 && (
+                                  <p className="text-xs text-gray-600 mt-2">
+                                    Branch: {selectedProgram.branchPreferences
+                                      .sort((a, b) => a.priority - b.priority)
+                                      .map(b => b.branch)
+                                      .join(', ')}
+                                  </p>
                                 )}
                               </div>
-                              {selectedProgram.branchPreferences && selectedProgram.branchPreferences.length > 0 && (
-                                <p className="text-xs text-gray-600 mt-2">
-                                  Branch: {selectedProgram.branchPreferences
-                                    .sort((a, b) => a.priority - b.priority)
-                                    .map(b => b.branch)
-                                    .join(', ')}
-                                </p>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    }) || (
-                      <div className="text-center py-8">
-                        <FileText className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                        <p className="text-gray-500">No recent applications</p>
-                      </div>
-                    )}
+                            )}
+                          </div>
+                        );
+                      });
+                    })()}
                   </div>
                   </ScrollArea>
                 </CardContent>
@@ -377,89 +386,95 @@ export default function Dashboard() {
           {/* Recent Activity */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Recent Applications */}
-            {stats?.recentAdmissions && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Recent Applications</CardTitle>
-                  <CardDescription>
-                    Latest admission applications
-                  </CardDescription>
-                </CardHeader>
+            <Card>
+              <CardHeader>
+                <CardTitle>Recent Applications</CardTitle>
+                <CardDescription>
+                  Latest admission applications
+                </CardDescription>
+              </CardHeader>
                 <CardContent>
                   <ScrollArea className="h-72  rounded-md border">
                   <div className="space-y-2">
-                    {stats.recentAdmissions.map((admission) => {
-                      const selectedProgram = admission.programSelections?.find(p => p.selected);
-                      const createdDate = new Date(admission.createdAt).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric'
-                      });
+                    {stats?.recentAdmissions && stats.recentAdmissions.length > 0 ? (
+                      stats.recentAdmissions.map((admission) => {
+                        const selectedProgram = admission.programSelections?.find(p => p.selected);
+                        const createdDate = new Date(admission.createdAt).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric'
+                        });
 
-                      return (
-                        <div
-                          key={admission._id}
-                          className="p-2 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow"
-                        >
-                          <div className="flex items-start justify-between">
-                            <div>
-                              <p className="text-sm font-semibold text-gray-900">
-                                {admission.personalDetails?.fullName}
-                              </p>
-                              <p className="text-xs text-gray-600 font-medium">
-                                ID: {admission.applicationId}
-                              </p>
+                        return (
+                          <div
+                            key={admission._id}
+                            className="p-2 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow"
+                          >
+                            <div className="flex items-start justify-between">
+                              <div>
+                                <p className="text-sm font-semibold text-gray-900">
+                                  {admission.personalDetails?.fullName}
+                                </p>
+                                <p className="text-xs text-gray-600 font-medium">
+                                  ID: {admission.applicationId}
+                                </p>
+                              </div>
+                              <Badge
+                                variant="secondary"
+                                className={getStatusColor(admission.status)}
+                              >
+                                {getStatusIcon(admission.status)}
+                                <span className="ml-1 capitalize">{admission.status}</span>
+                              </Badge>
                             </div>
-                            <Badge
-                              variant="secondary"
-                              className={getStatusColor(admission.status)}
-                            >
-                              {getStatusIcon(admission.status)}
-                              <span className="ml-1 capitalize">{admission.status}</span>
-                            </Badge>
-                          </div>
 
-                          <p className="text-xs text-gray-500 mb-3">
-                            Created: {createdDate}
-                          </p>
+                            <p className="text-xs text-gray-500 mb-3">
+                              Created: {createdDate}
+                            </p>
 
-                          {selectedProgram && (
-                            <div className="bg-gray-50 p-1 rounded-md">
-                              <p className="text-xs font-medium text-gray-700 mb-1">Program Details:</p>
-                              <p className="text-xs text-gray-900 font-medium">{selectedProgram.programName}</p>
-                              <div className="flex flex-wrap gap-2 mt-2">
-                                <Badge variant="outline" className="text-xs">
-                                  Level: {selectedProgram.programLevel.toUpperCase()}
-                                </Badge>
-                                {selectedProgram.mode && (
+                            {selectedProgram && (
+                              <div className="bg-gray-50 p-1 rounded-md">
+                                <p className="text-xs font-medium text-gray-700 mb-1">Program Details:</p>
+                                <p className="text-xs text-gray-900 font-medium">{selectedProgram.programName}</p>
+                                <div className="flex flex-wrap gap-2 mt-2">
                                   <Badge variant="outline" className="text-xs">
-                                    Mode: {selectedProgram.mode}
+                                    Level: {selectedProgram.programLevel.toUpperCase()}
                                   </Badge>
-                                )}
-                                {selectedProgram.specialization && (
-                                  <Badge variant="outline" className="text-xs">
-                                    Specialization: {selectedProgram.specialization}
-                                  </Badge>
+                                  {selectedProgram.mode && (
+                                    <Badge variant="outline" className="text-xs">
+                                      Mode: {selectedProgram.mode}
+                                    </Badge>
+                                  )}
+                                  {selectedProgram.specialization && (
+                                    <Badge variant="outline" className="text-xs">
+                                      Specialization: {selectedProgram.specialization}
+                                    </Badge>
+                                  )}
+                                </div>
+                                {selectedProgram.branchPreferences && selectedProgram.branchPreferences.length > 0 && (
+                                  <p className="text-xs text-gray-600 mt-2">
+                                    Branch: {selectedProgram.branchPreferences
+                                      .sort((a, b) => a.priority - b.priority)
+                                      .map(b => b.branch)
+                                      .join(', ')}
+                                  </p>
                                 )}
                               </div>
-                              {selectedProgram.branchPreferences && selectedProgram.branchPreferences.length > 0 && (
-                                <p className="text-xs text-gray-600 mt-2">
-                                  Branch: {selectedProgram.branchPreferences
-                                    .sort((a, b) => a.priority - b.priority)
-                                    .map(b => b.branch)
-                                    .join(', ')}
-                                </p>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
+                            )}
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <div className="text-center py-8">
+                        <FileText className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                        <p className="text-gray-500">No recent applications</p>
+                        <p className="text-xs text-gray-400 mt-1">Applications will appear here once submitted</p>
+                      </div>
+                    )}
                   </div>
                   </ScrollArea>
                 </CardContent>
               </Card>
-            )}
 
             {/* Recent Users - Only visible to Super Admin */}
             {user?.role === 'super_admin' && stats?.recentUsers && (
@@ -472,9 +487,9 @@ export default function Dashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="max-h-96 overflow-y-auto space-y-4">
-                    {stats.recentUsers.map((recentUser) => (
+                    {stats.recentUsers.map((recentUser,index) => (
                       <div
-                        key={recentUser._id}
+                        key={index}
                         className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
                       >
                         <div className="flex-1">

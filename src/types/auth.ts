@@ -20,6 +20,7 @@ export type Permission =
   | 'view_all_applications'
   | 'view_department_applications'
   | 'edit_applications'
+  | 'update_application_status'
   | 'verify_applications'
   | 'download_applications'
   | 'bulk_export_applications'
@@ -98,6 +99,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   super_admin: [
     'view_all_applications',
     'edit_applications',
+    'update_application_status',
     'verify_applications',
     'download_applications',
     'bulk_export_applications',
@@ -119,6 +121,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   admission_officer: [
     'view_all_applications',
     'edit_applications',
+    'update_application_status',
     'verify_applications',
     'download_applications',
     'bulk_export_applications',

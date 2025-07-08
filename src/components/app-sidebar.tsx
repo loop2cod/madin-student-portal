@@ -52,6 +52,12 @@ const getNavigationItems = (user: any) => {
         permission: "view_all_applications"
       },
       {
+        title: "Quick Admission",
+        url: "/quick-admission",
+        icon: UserPlus,
+        permission: "view_all_applications"
+      },
+      {
         title: "Analytics",
         url: "/analytics",
         icon: BarChart3,
@@ -79,6 +85,12 @@ const getNavigationItems = (user: any) => {
         title: "All Applications",
         url: "/applications",
         icon: FileText,
+        permission: "view_all_applications"
+      },
+      {
+        title: "Quick Admission",
+        url: "/quick-admission",
+        icon: UserPlus,
         permission: "view_all_applications"
       },
       {
