@@ -211,9 +211,8 @@ export default function EditApplicationPage() {
     return (
       <ProtectedRoute requiredPermissions={['edit_applications']}>
         <DashboardLayout title="Edit Application">
-          <div className="flex justify-center items-center py-10">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500"></div>
-            <span className="ml-3 text-gray-700">Loading application data...</span>
+             <div className="flex items-center justify-center h-64">
+            <div className="animate-spin w-8 h-8 border-4 border-blue-900 border-t-transparent rounded-full"></div>
           </div>
         </DashboardLayout>
       </ProtectedRoute>
@@ -247,7 +246,7 @@ export default function EditApplicationPage() {
           <div className="flex justify-between items-start">
             <div>
               <div className="flex items-center gap-4 mb-2">
-                <Button onClick={() => router.push(`/applications/${applicationData._id}`)} size="sm" variant="outline">
+                <Button onClick={() => router.push(`/applications/${applicationData.applicationId}`)} size="sm" variant="outline">
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Back to Application Details
                 </Button>

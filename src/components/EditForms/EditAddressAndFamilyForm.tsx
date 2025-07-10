@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
 import { Save, MapPin, Users } from 'lucide-react';
+import { toast } from '@/components/ui/use-toast';
 
 interface AddressAndFamilyFormProps {
   applicationData: any;
@@ -68,6 +69,69 @@ const EditAddressAndFamilyForm: React.FC<AddressAndFamilyFormProps> = ({
   });
 
   const [errors, setErrors] = useState<{[key: string]: string}>({});
+  const [isLoadingPincode, setIsLoadingPincode] = useState(false);
+  const isUserInputRef = useRef(false);
+
+  // Function to fetch address details from PIN code
+  const fetchAddressFromPincode = async (pincode: string) => {
+    if (pincode.length !== 6) return;
+
+    setIsLoadingPincode(true);
+    try {
+      const response = await fetch(`https://api.postalpincode.in/pincode/${pincode}`);
+      const data = await response.json();
+
+      if (data[0].Status === 'Success') {
+        const postOffice = data[0].PostOffice[0];
+
+        setFormData(prev => ({
+          ...prev,
+          address: {
+            ...prev.address,
+            district: postOffice.District || '',
+            state: postOffice.State || '',
+            postOffice: postOffice.Name || ''
+          }
+        }));
+
+        // Clear any existing errors for these fields
+        setErrors(prev => ({
+          ...prev,
+          district: '',
+          state: '',
+          postOffice: ''
+        }));
+
+        toast({
+          title: "Success",
+          description: "Address details fetched successfully",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Invalid PIN code. Please check and try again.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching address details:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch address details. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingPincode(false);
+    }
+  };
+
+  // Effect to trigger address lookup when PIN code changes (only for user input)
+  useEffect(() => {
+    if (isUserInputRef.current && formData.address.pinCode.length === 6) {
+      fetchAddressFromPincode(formData.address.pinCode);
+      isUserInputRef.current = false; // Reset after fetching
+    }
+  },[formData.address.pinCode]);
 
   useEffect(() => {
     if (applicationData?.addressFamilyDetails) {
@@ -165,6 +229,11 @@ const EditAddressAndFamilyForm: React.FC<AddressAndFamilyFormProps> = ({
   };
 
   const handleInputChange = (section: keyof AddressAndFamilyData, field: string, value: string) => {
+    // Set flag for user input on pinCode changes
+    if (section === 'address' && field === 'pinCode') {
+      isUserInputRef.current = true;
+    }
+
     setFormData(prev => ({
       ...prev,
       [section]: {
@@ -173,22 +242,14 @@ const EditAddressAndFamilyForm: React.FC<AddressAndFamilyFormProps> = ({
       }
     }));
     onChange();
-    
+
     // Clear error when user starts typing
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
     }
   };
 
-  const indianStates = [
-    'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Goa', 'Gujarat',
-    'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka', 'Kerala', 'Madhya Pradesh',
-    'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab',
-    'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura', 'Uttar Pradesh',
-    'Uttarakhand', 'West Bengal', 'Andaman and Nicobar Islands', 'Chandigarh',
-    'Dadra and Nagar Haveli and Daman and Diu', 'Lakshadweep', 'Delhi', 'Puducherry',
-    'Ladakh', 'Jammu and Kashmir'
-  ];
+
 
   return (
     <div className="space-y-6">
@@ -213,6 +274,24 @@ const EditAddressAndFamilyForm: React.FC<AddressAndFamilyFormProps> = ({
                 />
                 {errors.houseNumber && <p className="text-sm text-red-500">{errors.houseNumber}</p>}
               </div>
+               <div className="space-y-2">
+                <Label htmlFor="pinCode">PIN Code *</Label>
+                <Input
+                  id="pinCode"
+                  value={formData.address.pinCode}
+                  onChange={(e) => {
+                    // Only allow numbers
+                    const value = e.target.value.replace(/\D/g, '');
+                    handleInputChange('address', 'pinCode', value);
+                  }}
+                  placeholder="Enter PIN code"
+                  className={errors.pinCode ? 'border-red-500' : ''}
+                  maxLength={6}
+                  disabled={isLoadingPincode}
+                />
+                {isLoadingPincode && <p className="text-sm text-blue-500">Fetching address details...</p>}
+                {errors.pinCode && <p className="text-sm text-red-500">{errors.pinCode}</p>}
+              </div>
 
               <div className="space-y-2">
                 <Label htmlFor="street">Street *</Label>
@@ -234,20 +313,9 @@ const EditAddressAndFamilyForm: React.FC<AddressAndFamilyFormProps> = ({
                   onChange={(e) => handleInputChange('address', 'postOffice', e.target.value)}
                   placeholder="Enter post office"
                   className={errors.postOffice ? 'border-red-500' : ''}
+                  disabled={isLoadingPincode}
                 />
                 {errors.postOffice && <p className="text-sm text-red-500">{errors.postOffice}</p>}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="pinCode">PIN Code *</Label>
-                <Input
-                  id="pinCode"
-                  value={formData.address.pinCode}
-                  onChange={(e) => handleInputChange('address', 'pinCode', e.target.value)}
-                  placeholder="Enter PIN code"
-                  className={errors.pinCode ? 'border-red-500' : ''}
-                />
-                {errors.pinCode && <p className="text-sm text-red-500">{errors.pinCode}</p>}
               </div>
 
               <div className="space-y-2">
@@ -258,22 +326,21 @@ const EditAddressAndFamilyForm: React.FC<AddressAndFamilyFormProps> = ({
                   onChange={(e) => handleInputChange('address', 'district', e.target.value)}
                   placeholder="Enter district"
                   className={errors.district ? 'border-red-500' : ''}
+                  disabled={isLoadingPincode}
                 />
                 {errors.district && <p className="text-sm text-red-500">{errors.district}</p>}
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="state">State *</Label>
-                <Select value={formData.address.state} onValueChange={(value) => handleInputChange('address', 'state', value)}>
-                  <SelectTrigger className={errors.state ? 'border-red-500' : ''}>
-                    <SelectValue placeholder="Select state" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {indianStates.map((state) => (
-                      <SelectItem key={state} value={state}>{state}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Input
+                  id="state"
+                  value={formData.address.state}
+                  onChange={(e) => handleInputChange('address', 'state', e.target.value)}
+                  placeholder="Enter state"
+                  className={errors.state ? 'border-red-500' : ''}
+                  disabled={isLoadingPincode}
+                />
                 {errors.state && <p className="text-sm text-red-500">{errors.state}</p>}
               </div>
             </div>
@@ -349,32 +416,32 @@ const EditAddressAndFamilyForm: React.FC<AddressAndFamilyFormProps> = ({
               <h3 className="font-medium text-gray-900">Guardian Details (Optional)</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="guardianName">Guardian Name</Label>
+                  <Label htmlFor="guardianName">Name</Label>
                   <Input
                     id="guardianName"
                     value={formData.guardian.guardianName}
                     onChange={(e) => handleInputChange('guardian', 'guardianName', e.target.value)}
-                    placeholder="Enter guardian name"
+                    placeholder="Enter name"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="guardianPlace">Guardian Place</Label>
+                  <Label htmlFor="guardianPlace">Place</Label>
                   <Input
                     id="guardianPlace"
                     value={formData.guardian.guardianPlace}
                     onChange={(e) => handleInputChange('guardian', 'guardianPlace', e.target.value)}
-                    placeholder="Enter guardian place"
+                    placeholder="Enter place"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="guardianContact">Guardian Contact</Label>
+                  <Label htmlFor="guardianContact">Contact</Label>
                   <Input
                     id="guardianContact"
                     value={formData.guardian.guardianContact}
                     onChange={(e) => handleInputChange('guardian', 'guardianContact', e.target.value)}
-                    placeholder="Enter guardian contact"
+                    placeholder="Enter contact"
                     className={errors.guardianContact ? 'border-red-500' : ''}
                   />
                   {errors.guardianContact && <p className="text-sm text-red-500">{errors.guardianContact}</p>}

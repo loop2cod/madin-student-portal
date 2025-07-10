@@ -432,10 +432,9 @@ export default function ApplicationDetailPage() {
     return (
       <ProtectedRoute requiredPermissions={['view_all_applications', 'view_department_applications']} allowAny={true}>
         <DashboardLayout title="Application Details">
-          <div className="flex justify-center items-center py-10">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500"></div>
-            <span className="ml-3 text-gray-700">Loading application details...</span>
-          </div>
+             <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-4 border-blue-900 border-t-transparent rounded-full"></div>
+      </div>
         </DashboardLayout>
       </ProtectedRoute>
     );

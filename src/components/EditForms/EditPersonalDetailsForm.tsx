@@ -38,8 +38,8 @@ const EditPersonalDetailsForm: React.FC<PersonalDetailsFormProps> = ({
   const [formData, setFormData] = useState<PersonalDetailsData>({
     fullName: '',
     dob: undefined,
-    gender: '',
-    religion: '',
+    gender: applicationData?.personalDetails?.gender || '',
+    religion: applicationData?.personalDetails?.religion || '',
     email: '',
     mobile: ''
   });
@@ -52,8 +52,8 @@ const EditPersonalDetailsForm: React.FC<PersonalDetailsFormProps> = ({
         fullName: applicationData.personalDetails.fullName || 
                   (applicationData.personalDetails.firstName + ' ' + applicationData.personalDetails.lastName) || '',
         dob: applicationData.personalDetails.dob ? new Date(applicationData.personalDetails.dob) : undefined,
-        gender: applicationData.personalDetails.gender || '',
-        religion: applicationData.personalDetails.religion || '',
+        gender: applicationData.personalDetails.gender,
+        religion: applicationData.personalDetails.religion,
         email: applicationData.personalDetails.email || '',
         mobile: applicationData.personalDetails.mobile || applicationData.mobile || ''
       });
@@ -153,13 +153,12 @@ const EditPersonalDetailsForm: React.FC<PersonalDetailsFormProps> = ({
             <div className="space-y-2">
               <Label htmlFor="gender">Gender *</Label>
               <Select value={formData.gender} onValueChange={(value) => handleInputChange('gender', value)}>
-                <SelectTrigger className={errors.gender ? 'border-red-500' : ''}>
+                <SelectTrigger className={errors.gender ? 'border-red-500 w-full' : 'w-full'}>
                   <SelectValue placeholder="Select gender" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="male">Male</SelectItem>
                   <SelectItem value="female">Female</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
               </Select>
               {errors.gender && <p className="text-sm text-red-500">{errors.gender}</p>}
@@ -168,7 +167,7 @@ const EditPersonalDetailsForm: React.FC<PersonalDetailsFormProps> = ({
             <div className="space-y-2">
               <Label htmlFor="religion">Religion *</Label>
               <Select value={formData.religion} onValueChange={(value) => handleInputChange('religion', value)}>
-                <SelectTrigger className={errors.religion ? 'border-red-500' : ''}>
+                <SelectTrigger className={errors.religion ? 'border-red-500 w-full' : 'w-full'}>
                   <SelectValue placeholder="Select religion" />
                 </SelectTrigger>
                 <SelectContent>

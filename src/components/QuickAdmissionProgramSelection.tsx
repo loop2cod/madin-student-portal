@@ -5,8 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { ChevronUp, ChevronDown } from 'lucide-react';
 
 interface Program {
@@ -28,286 +27,493 @@ interface ProgramSelectionProps {
       priority: number;
     }>;
   };
-  onUpdate: (field: string, value: any) => void;
+  onUpdate: (field: string, value: unknown) => void;
 }
 
 const programs: Program[] = [
   {
-    id: 'diploma-engineering',
+    id: 'diploma-eng',
     name: 'Diploma in Engineering',
     type: 'diploma',
-    description: 'Three-year diploma program in various engineering disciplines',
+    description: '3-year technical diploma program',
     modes: ['Regular', 'Part-time', 'LET']
   },
   {
-    id: 'mba',
-    name: 'Master of Business Administration (MBA)',
+    id: 'mba-regular',
+    name: 'MBA (Regular)',
     type: 'mba',
-    description: 'Two-year postgraduate program in business administration'
+    description: '2-year master of business administration'
   }
 ];
 
-const branches = [
-  'Civil Engineering',
-  'Mechanical Engineering',
-  'Electrical and Electronics Engineering',
-  'Computer Engineering',
-  'Automobile Engineering',
-  'Architecture'
-];
-
-const mbaSpecializations = [
-  'Finance',
-  'Marketing',
-  'Human Resources',
-  'Operations Management',
-  'Information Technology',
-  'International Business'
-];
+const BRANCHES = {
+  REGULAR: [
+    "Civil Engineering",
+    "Mechanical Engineering",
+    "Electrical and Electronics Engineering",
+    "Computer Engineering",
+    "Automobile Engineering",
+    "Architecture"
+  ],
+  PART_TIME: [
+    "Electrical and Electronics Engineering"
+  ],
+  LET: [
+    "Civil Engineering",
+    "Mechanical Engineering",
+    "Electrical and Electronics Engineering",
+    "Computer Engineering",
+    "Automobile Engineering"
+  ]
+};
 
 export const QuickAdmissionProgramSelection: React.FC<ProgramSelectionProps> = ({
   formData,
   onUpdate
 }) => {
-  const [expandedSections, setExpandedSections] = useState<{[key: string]: boolean}>({
-    diploma: true,
-    mba: true
+  const [selectedProgramType, setSelectedProgramType] = useState<'diploma' | 'mba' | null>(
+    formData.programLevel || null
+  );
+  const [selectedProgram, setSelectedProgram] = useState<string>(
+    programs.find(p => p.name === formData.programName)?.id || ''
+  );
+  const [selectedMode, setSelectedMode] = useState<'Regular' | 'Part-time' | 'LET' | null>(
+    formData.mode || null
+  );
+
+  // Store branch selections for each mode separately
+  const [branchSelections, setBranchSelections] = useState<{
+    Regular: string[];
+    'Part-time': string[];
+    LET: string[];
+  }>(() => {
+    const initialSelections: {
+      Regular: string[];
+      'Part-time': string[];
+      LET: string[];
+    } = {
+      Regular: [],
+      'Part-time': [],
+      LET: []
+    };
+
+    // Initialize with existing branch preferences if they exist
+    if (formData.branchPreferences && formData.mode) {
+      const sortedBranches = [...formData.branchPreferences]
+        .sort((a, b) => a.priority - b.priority)
+        .map(bp => bp.branch);
+      initialSelections[formData.mode] = sortedBranches;
+    }
+
+    return initialSelections;
   });
 
-  const toggleSection = (section: string) => {
-    setExpandedSections(prev => ({
-      ...prev,
-      [section]: !prev[section]
-    }));
-  };
+  // This is a computed value based on the selected mode
+  const selectedBranches = selectedMode ? branchSelections[selectedMode] : [];
 
-  const handleProgramSelect = (program: Program) => {
-    onUpdate('programLevel', program.type);
-    onUpdate('programName', program.name);
-    
-    // Reset dependent fields
+
+
+  const handleProgramTypeSelect = (type: 'diploma' | 'mba') => {
+    setSelectedProgramType(type);
+    setSelectedProgram('');
+    setSelectedMode(null);
+
+    // Update form data
+    onUpdate('programLevel', type);
+    onUpdate('programName', '');
     onUpdate('mode', undefined);
     onUpdate('specialization', undefined);
     onUpdate('branchPreferences', []);
-  };
 
-  const handleModeSelect = (mode: 'Regular' | 'Part-time' | 'LET') => {
-    onUpdate('mode', mode);
-    // Reset branch preferences when mode changes
-    onUpdate('branchPreferences', []);
-  };
-
-  const handleBranchToggle = (branch: string, checked: boolean) => {
-    const currentBranches = formData.branchPreferences || [];
-    
-    if (checked) {
-      const newBranches = [...currentBranches, {
-        branch,
-        priority: currentBranches.length + 1
-      }];
-      onUpdate('branchPreferences', newBranches);
-    } else {
-      const newBranches = currentBranches
-        .filter(b => b.branch !== branch)
-        .map((b, index) => ({ ...b, priority: index + 1 }));
-      onUpdate('branchPreferences', newBranches);
+    // Reset branch selections when changing program type
+    if (type === 'mba') {
+      setBranchSelections({
+        Regular: [],
+        'Part-time': [],
+        LET: []
+      });
     }
   };
 
-  const selectedProgram = programs.find(p => p.name === formData.programName);
-  const selectedBranches = formData.branchPreferences?.map(b => b.branch) || [];
+  const handleProgramSelect = (programId: string) => {
+    setSelectedProgram(programId);
+    setSelectedMode(null);
+
+    const program = programs.find(p => p.id === programId);
+    if (program) {
+      onUpdate('programName', program.name);
+      onUpdate('mode', undefined);
+      onUpdate('branchPreferences', []); // Only clear when selecting a new program
+    }
+  };
+
+  const handleModeSelect = (mode: 'Regular' | 'Part-time' | 'LET') => {
+    setSelectedMode(mode);
+    onUpdate('mode', mode);
+
+    // Update branch preferences based on current selections for this mode
+    const currentBranches = branchSelections[mode];
+    const branchPreferences = currentBranches.map((branch, index) => ({
+      branch,
+      priority: index + 1
+    }));
+    onUpdate('branchPreferences', branchPreferences);
+  };
+
+  const handleBranchToggle = (branch: string) => {
+    if (!selectedMode) return;
+
+    setBranchSelections(prev => {
+      const currentSelections = [...prev[selectedMode]];
+
+      // If branch is already selected, remove it
+      if (currentSelections.includes(branch)) {
+        const newSelections = currentSelections.filter(b => b !== branch);
+        const branchPreferences = newSelections.map((b, index) => ({
+          branch: b,
+          priority: index + 1
+        }));
+        onUpdate('branchPreferences', branchPreferences);
+
+        return {
+          ...prev,
+          [selectedMode]: newSelections
+        };
+      }
+      // Otherwise add it to the end (maintaining selection order for priority)
+      else {
+        const newSelections = [...currentSelections, branch];
+        const branchPreferences = newSelections.map((b, index) => ({
+          branch: b,
+          priority: index + 1
+        }));
+        onUpdate('branchPreferences', branchPreferences);
+
+        return {
+          ...prev,
+          [selectedMode]: newSelections
+        };
+      }
+    });
+  };
+
+  const moveBranchUp = (index: number) => {
+    if (!selectedMode || index === 0) return;
+
+    setBranchSelections(prev => {
+      const currentSelections = [...prev[selectedMode]];
+
+      // Swap with the item above
+      [currentSelections[index], currentSelections[index - 1]] =
+        [currentSelections[index - 1], currentSelections[index]];
+
+      const branchPreferences = currentSelections.map((branch, idx) => ({
+        branch,
+        priority: idx + 1
+      }));
+      onUpdate('branchPreferences', branchPreferences);
+
+      return {
+        ...prev,
+        [selectedMode]: currentSelections
+      };
+    });
+  };
+
+  const moveBranchDown = (index: number) => {
+    if (!selectedMode) return;
+
+    setBranchSelections(prev => {
+      const currentSelections = [...prev[selectedMode]];
+      if (index >= currentSelections.length - 1) return prev; // Can't move down if already at the bottom
+
+      // Swap with the item below
+      [currentSelections[index], currentSelections[index + 1]] =
+        [currentSelections[index + 1], currentSelections[index]];
+
+      const branchPreferences = currentSelections.map((branch, idx) => ({
+        branch,
+        priority: idx + 1
+      }));
+      onUpdate('branchPreferences', branchPreferences);
+
+      return {
+        ...prev,
+        [selectedMode]: currentSelections
+      };
+    });
+  };
 
   return (
     <div className="space-y-6">
       {/* Program Type Selection */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-gray-900">Select Program Type</h3>
-        
-        {/* Diploma Programs */}
-        <Card className="border-2 hover:border-[#001c67]/20 transition-colors">
-          <CardHeader 
-            className="cursor-pointer"
-            onClick={() => toggleSection('diploma')}
+      <Card className="border border-gray-200 rounded-none p-2 gap-0">
+        <CardHeader className="p-2">
+          <CardTitle>Select Program Type</CardTitle>
+          <CardDescription>
+            Choose between Diploma or MBA programs
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-2">
+          <RadioGroup
+            value={selectedProgramType || ''}
+            onValueChange={(value: 'diploma' | 'mba') => handleProgramTypeSelect(value)}
+            className="flex gap-4"
           >
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-base">Diploma Programs</CardTitle>
-                <CardDescription>Three-year engineering diploma programs</CardDescription>
-              </div>
-              {expandedSections.diploma ? (
-                <ChevronUp className="w-5 h-5 text-gray-500" />
-              ) : (
-                <ChevronDown className="w-5 h-5 text-gray-500" />
-              )}
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="diploma" id="diploma-type" />
+              <Label htmlFor="diploma-type">Diploma Programs</Label>
             </div>
-          </CardHeader>
-          
-          {expandedSections.diploma && (
-            <CardContent>
-              <RadioGroup
-                value={formData.programLevel === 'diploma' ? formData.programName : ''}
-                onValueChange={(value) => {
-                  const program = programs.find(p => p.name === value);
-                  if (program) handleProgramSelect(program);
-                }}
-              >
-                {programs.filter(p => p.type === 'diploma').map((program) => (
-                  <div key={program.id} className="flex items-center space-x-2">
-                    <RadioGroupItem value={program.name} id={program.id} />
-                    <Label htmlFor={program.id} className="flex-1 cursor-pointer">
-                      <div>
-                        <p className="font-medium">{program.name}</p>
-                        <p className="text-sm text-gray-500">{program.description}</p>
-                      </div>
-                    </Label>
-                  </div>
-                ))}
-              </RadioGroup>
-            </CardContent>
-          )}
-        </Card>
-
-        {/* MBA Programs */}
-        <Card className="border-2 hover:border-[#001c67]/20 transition-colors">
-          <CardHeader 
-            className="cursor-pointer"
-            onClick={() => toggleSection('mba')}
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-base">MBA Programs</CardTitle>
-                <CardDescription>Two-year postgraduate business programs</CardDescription>
-              </div>
-              {expandedSections.mba ? (
-                <ChevronUp className="w-5 h-5 text-gray-500" />
-              ) : (
-                <ChevronDown className="w-5 h-5 text-gray-500" />
-              )}
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="mba" id="mba-type" />
+              <Label htmlFor="mba-type">MBA Programs</Label>
             </div>
-          </CardHeader>
-          
-          {expandedSections.mba && (
-            <CardContent>
-              <RadioGroup
-                value={formData.programLevel === 'mba' ? formData.programName : ''}
-                onValueChange={(value) => {
-                  const program = programs.find(p => p.name === value);
-                  if (program) handleProgramSelect(program);
-                }}
-              >
-                {programs.filter(p => p.type === 'mba').map((program) => (
-                  <div key={program.id} className="flex items-center space-x-2">
-                    <RadioGroupItem value={program.name} id={program.id} />
-                    <Label htmlFor={program.id} className="flex-1 cursor-pointer">
-                      <div>
-                        <p className="font-medium">{program.name}</p>
-                        <p className="text-sm text-gray-500">{program.description}</p>
-                      </div>
-                    </Label>
-                  </div>
-                ))}
-              </RadioGroup>
-            </CardContent>
-          )}
-        </Card>
-      </div>
+          </RadioGroup>
+        </CardContent>
+      </Card>
 
-      {/* Mode Selection for Diploma */}
-      {formData.programLevel === 'diploma' && selectedProgram && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Select Mode</CardTitle>
-            <CardDescription>Choose the mode of study for the diploma program</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <RadioGroup
-              value={formData.mode || ''}
-              onValueChange={(value) => handleModeSelect(value as 'Regular' | 'Part-time' | 'LET')}
-            >
-              {selectedProgram.modes?.map((mode) => (
-                <div key={mode} className="flex items-center space-x-2">
-                  <RadioGroupItem value={mode} id={mode} />
-                  <Label htmlFor={mode} className="cursor-pointer">
-                    {mode}
-                  </Label>
-                </div>
-              ))}
-            </RadioGroup>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Branch Selection for Diploma */}
-      {formData.programLevel === 'diploma' && formData.mode && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Select Branch Preferences</CardTitle>
+      {/* Program Selection */}
+      {selectedProgramType && (
+        <Card className="border border-gray-200 rounded-none p-2 gap-0">
+          <CardHeader className="p-2">
+            <CardTitle>
+              {selectedProgramType === 'diploma' ? 'Diploma' : 'MBA'} Programs
+            </CardTitle>
             <CardDescription>
-              Choose your preferred engineering branches (you can select multiple)
+              Select your preferred {selectedProgramType === 'diploma' ? 'Diploma' : 'MBA'} program
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {branches.map((branch) => (
-                <div key={branch} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={branch}
-                    checked={selectedBranches.includes(branch)}
-                    onCheckedChange={(checked) => handleBranchToggle(branch, checked as boolean)}
-                  />
-                  <Label htmlFor={branch} className="cursor-pointer text-sm">
-                    {branch}
-                  </Label>
-                </div>
-              ))}
-            </div>
-            
-            {selectedBranches.length > 0 && (
-              <div className="mt-4">
-                <p className="text-sm font-medium text-gray-700 mb-2">Selected Branches:</p>
-                <div className="flex flex-wrap gap-2">
-                  {formData.branchPreferences?.map((branch, index) => (
-                    <Badge key={branch.branch} variant="secondary">
-                      {index + 1}. {branch.branch}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Specialization for MBA */}
-      {formData.programLevel === 'mba' && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">MBA Specialization</CardTitle>
-            <CardDescription>Choose your area of specialization (optional)</CardDescription>
-          </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4 p-2">
             <RadioGroup
-              value={formData.specialization || ''}
-              onValueChange={(value) => onUpdate('specialization', value)}
+              value={selectedProgram}
+              onValueChange={handleProgramSelect}
             >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="" id="no-specialization" />
-                <Label htmlFor="no-specialization" className="cursor-pointer">
-                  No specific specialization
-                </Label>
-              </div>
-              {mbaSpecializations.map((spec) => (
-                <div key={spec} className="flex items-center space-x-2">
-                  <RadioGroupItem value={spec} id={spec} />
-                  <Label htmlFor={spec} className="cursor-pointer">
-                    {spec}
-                  </Label>
-                </div>
-              ))}
+              {programs
+                .filter(program => program.type === selectedProgramType)
+                .map(program => (
+                  <div key={program.id} className="flex flex-col space-y-2 border px-2 py-3 rounded-none mb-4">
+                    <div className="flex items-start space-x-2">
+                      <RadioGroupItem value={program.id} id={program.id} />
+                      <Label htmlFor={program.id} className="flex-1 cursor-pointer">
+                        <div>
+                          <p className="font-medium">{program.name}</p>
+                          <p className="text-sm text-gray-500">{program.description}</p>
+                        </div>
+                      </Label>
+                    </div>
+
+                    {/* Mode selection for diploma programs */}
+                    {selectedProgram === program.id && program.type === 'diploma' && program.modes && (
+                      <div className="ml-8 space-y-3">
+                        <h4 className="text-sm font-medium">Select Mode:</h4>
+                        <RadioGroup
+                          value={selectedMode || ''}
+                          onValueChange={handleModeSelect}
+                          className="flex gap-4"
+                        >
+                          {program.modes.map(mode => (
+                            <div key={mode} className="flex items-center space-x-2">
+                              <RadioGroupItem value={mode} id={`mode-${mode}`} />
+                              <Label htmlFor={`mode-${mode}`}>{mode}</Label>
+                            </div>
+                          ))}
+                        </RadioGroup>
+
+                        {/* Branch selection for Regular Diploma */}
+                        {selectedMode === 'Regular' && (
+                          <div className="space-y-3 mt-4">
+                            <h4 className="text-sm font-medium">Select Branch Preferences:</h4>
+                            <div className="grid grid-cols-1 gap-2">
+                              {BRANCHES.REGULAR.map(branch => (
+                                <div key={branch} className="flex items-center space-x-2">
+                                  <Checkbox
+                                    id={`branch-${branch}`}
+                                    defaultChecked={selectedBranches.includes(branch)}
+                                    onCheckedChange={() => handleBranchToggle(branch)}
+                                  />
+                                  <Label htmlFor={`branch-${branch}`}>{branch}</Label>
+                                </div>
+                              ))}
+                            </div>
+                            <p className="text-xs text-gray-500">Select your preferred branches in order of priority</p>
+
+                            {/* Selection overview for Regular */}
+                            {selectedBranches.length > 0 && (
+                              <div className="mt-4 p-3 bg-gray-50 border border-gray-200 rounded">
+                                <h5 className="text-sm font-medium mb-2">Your Branch Preferences:</h5>
+                                <div className="space-y-2">
+                                  {selectedBranches.map((branch, index) => (
+                                    <div key={branch} className="flex items-center justify-between">
+                                      <div className="flex items-center">
+                                        <span className="w-6 text-center font-medium">{index + 1}.</span>
+                                        <span className="text-sm">{branch}</span>
+                                      </div>
+                                      <div className="flex space-x-1">
+                                        <Button
+                                          type="button"
+                                          variant="ghost"
+                                          size="sm"
+                                          className="h-7 w-7 p-0"
+                                          onClick={() => moveBranchUp(index)}
+                                          disabled={index === 0}
+                                        >
+                                          <ChevronUp className="h-4 w-4" />
+                                        </Button>
+                                        <Button
+                                          type="button"
+                                          variant="ghost"
+                                          size="sm"
+                                          className="h-7 w-7 p-0"
+                                          onClick={() => moveBranchDown(index)}
+                                          disabled={index === selectedBranches.length - 1}
+                                        >
+                                          <ChevronDown className="h-4 w-4" />
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Branch selection for Part-time Diploma */}
+                        {selectedMode === 'Part-time' && (
+                          <div className="space-y-3 mt-4">
+                            <h4 className="text-sm font-medium">Select Branch Preferences:</h4>
+                            <div className="grid grid-cols-1 gap-2">
+                              {BRANCHES.PART_TIME.map(branch => (
+                                <div key={branch} className="flex items-center space-x-2">
+                                  <Checkbox
+                                    id={`branch-parttime-${branch}`}
+                                    checked={selectedBranches.includes(branch)}
+                                    onCheckedChange={() => handleBranchToggle(branch)}
+                                  />
+                                  <Label htmlFor={`branch-parttime-${branch}`}>{branch}</Label>
+                                </div>
+                              ))}
+                            </div>
+                            <p className="text-xs text-gray-500">Select your preferred branches in order of priority</p>
+
+                            {/* Selection overview for Part-time */}
+                            {selectedBranches.length > 0 && (
+                              <div className="mt-4 p-3 bg-gray-50 border border-gray-200 rounded">
+                                <h5 className="text-sm font-medium mb-2">Your Branch Preferences:</h5>
+                                <div className="space-y-2">
+                                  {selectedBranches.map((branch, index) => (
+                                    <div key={branch} className="flex items-center justify-between">
+                                      <div className="flex items-center">
+                                        <span className="w-6 text-center font-medium">{index + 1}.</span>
+                                        <span className="text-sm">{branch}</span>
+                                      </div>
+                                      <div className="flex space-x-1">
+                                        <Button
+                                          type="button"
+                                          variant="ghost"
+                                          size="sm"
+                                          className="h-7 w-7 p-0"
+                                          onClick={() => moveBranchUp(index)}
+                                          disabled={index === 0}
+                                        >
+                                          <ChevronUp className="h-4 w-4" />
+                                        </Button>
+                                        <Button
+                                          type="button"
+                                          variant="ghost"
+                                          size="sm"
+                                          className="h-7 w-7 p-0"
+                                          onClick={() => moveBranchDown(index)}
+                                          disabled={index === selectedBranches.length - 1}
+                                        >
+                                          <ChevronDown className="h-4 w-4" />
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Branch selection for LET Diploma */}
+                        {selectedMode === 'LET' && (
+                          <div className="space-y-3 mt-4">
+                            <h4 className="text-sm font-medium">Select Branch Preferences:</h4>
+                            <div className="grid grid-cols-1 gap-2">
+                              {BRANCHES.LET.map(branch => (
+                                <div key={branch} className="flex items-center space-x-2">
+                                  <Checkbox
+                                    id={`branch-let-${branch}`}
+                                    checked={selectedBranches.includes(branch)}
+                                    onCheckedChange={() => handleBranchToggle(branch)}
+                                  />
+                                  <Label htmlFor={`branch-let-${branch}`}>{branch}</Label>
+                                </div>
+                              ))}
+                            </div>
+                            <p className="text-xs text-gray-500">Select your preferred branches in order of priority</p>
+
+                            {/* Selection overview */}
+                            {selectedBranches.length > 0 && (
+                              <div className="mt-4 p-3 bg-gray-50 border border-gray-200 rounded">
+                                <h5 className="text-sm font-medium mb-2">Your Branch Preferences:</h5>
+                                <div className="space-y-2">
+                                  {selectedBranches.map((branch, index) => (
+                                    <div key={branch} className="flex items-center justify-between">
+                                      <div className="flex items-center">
+                                        <span className="w-6 text-center font-medium">{index + 1}.</span>
+                                        <span className="text-sm">{branch}</span>
+                                      </div>
+                                      <div className="flex space-x-1">
+                                        <Button
+                                          type="button"
+                                          variant="ghost"
+                                          size="sm"
+                                          className="h-7 w-7 p-0"
+                                          onClick={() => moveBranchUp(index)}
+                                          disabled={index === 0}
+                                        >
+                                          <ChevronUp className="h-4 w-4" />
+                                        </Button>
+                                        <Button
+                                          type="button"
+                                          variant="ghost"
+                                          size="sm"
+                                          className="h-7 w-7 p-0"
+                                          onClick={() => moveBranchDown(index)}
+                                          disabled={index === selectedBranches.length - 1}
+                                        >
+                                          <ChevronDown className="h-4 w-4" />
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* MBA specialization */}
+                    {selectedProgram === program.id && program.type === 'mba' && (
+                      <div className="ml-8 space-y-3">
+                        <h4 className="text-sm font-medium">MBA Specialization (Optional):</h4>
+                        <div className="text-sm text-gray-600">
+                          Default specialization: General
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
             </RadioGroup>
           </CardContent>
         </Card>
       )}
+
     </div>
   );
 };
