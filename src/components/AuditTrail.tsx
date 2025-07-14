@@ -40,11 +40,13 @@ interface AuditLog {
 interface AuditTrailProps {
   applicationId: string;
   className?: string;
+  refreshKey?: number;
 }
 
 export const AuditTrail: React.FC<AuditTrailProps> = ({ 
   applicationId, 
-  className = "" 
+  className = "",
+  refreshKey = 0
 }) => {
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(false);
@@ -83,7 +85,7 @@ export const AuditTrail: React.FC<AuditTrailProps> = ({
 
   useEffect(() => {
     fetchAuditLogs(1);
-  }, [applicationId]);
+  }, [applicationId, refreshKey]);
 
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= totalPages && newPage !== currentPage) {
@@ -232,6 +234,59 @@ export const AuditTrail: React.FC<AuditTrailProps> = ({
                         <p className="text-sm font-medium text-gray-900 mb-1">
                           {log.description}
                         </p>
+                        
+                        {/* Show additional details for status changes */}
+                        {log.action === 'status_changed' && log.changes && (
+                          <div className="mt-2 p-3 bg-white rounded border border-gray-200">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                              {log.changes.status && (
+                                <div>
+                                  <span className="font-medium text-gray-700">Status:</span>
+                                  <div className="flex items-center gap-2 mt-1">
+                                    <Badge className="bg-red-100 text-red-800 text-xs">
+                                      {log.changes.status.from}
+                                    </Badge>
+                                    <span className="text-gray-400">→</span>
+                                    <Badge className={`text-xs ${
+                                      log.changes.status.to === 'approved' ? 'bg-green-100 text-green-800' :
+                                      log.changes.status.to === 'rejected' ? 'bg-red-100 text-red-800' :
+                                      log.changes.status.to === 'under_review' ? 'bg-yellow-100 text-yellow-800' :
+                                      log.changes.status.to === 'waitlisted' ? 'bg-blue-100 text-blue-800' :
+                                      'bg-gray-100 text-gray-800'
+                                    }`}>
+                                      {log.changes.status.to}
+                                    </Badge>
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {log.changes.adminRemarks && log.changes.adminRemarks.to && (
+                                <div>
+                                  <span className="font-medium text-gray-700">Admin Remarks:</span>
+                                  <p className="text-gray-600 mt-1 text-xs bg-gray-50 p-2 rounded">
+                                    {log.changes.adminRemarks.to}
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                            
+                            {/* Show approval details if status changed to approved */}
+                            {log.changes.status?.to === 'approved' && (
+                              <div className="mt-3 pt-3 border-t border-gray-200">
+                                <div className="flex items-center gap-2 text-green-700">
+                                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                  <span className="text-xs font-medium">Application Approved</span>
+                                </div>
+                                <div className="mt-2 text-xs text-gray-600">
+                                  <div className="flex items-center gap-4">
+                                    <span><strong>Approved by:</strong> {log.editedBy.name} ({log.editedBy.role})</span>
+                                    <span><strong>Email:</strong> {log.editedBy.email}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
                         <div className="flex items-center space-x-4 mt-3 text-xs text-gray-500">
                           <div className="flex items-center">
                             <User className="w-3 h-3 mr-1" />

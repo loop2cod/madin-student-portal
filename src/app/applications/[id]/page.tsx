@@ -153,7 +153,11 @@ interface ApplicationData {
   isExistingApplication?: boolean;
   createdAt: string;
   updatedAt: string;
-  reviewedBy?: string;
+  reviewedBy?: {
+    _id: string;
+    name: string;
+    email: string;
+  };
   reviewedAt?: string;
   adminRemarks?: string;
   department?: string;
@@ -172,7 +176,7 @@ export default function ApplicationDetailPage() {
   const params = useParams();
   const router = useRouter();
   const applicationId = params.id as string;
-  const { hasPermission } = useAuth();
+  const { hasPermission, hasRole, user } = useAuth();
   
   const [applicationData, setApplicationData] = useState<ApplicationData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -215,6 +219,17 @@ export default function ApplicationDetailPage() {
   const handleStatusUpdate = async (newStatus: string) => {
     if (!applicationData) return;
 
+    // Prevent status changes FROM approved status (unless super_admin)
+    // Admission officers can approve, but once approved, only super_admin can change it
+    if (applicationData.status === 'approved' && !hasRole('super_admin')) {
+      toast({
+        title: 'Cannot Change Status',
+        description: 'Application status cannot be changed once approved. Contact administrator if changes are needed.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setStatusUpdateLoading(true);
     try {
       const response = await put<any>(`/api/v1/admission/admin/${applicationData._id}/status`, {
@@ -223,16 +238,22 @@ export default function ApplicationDetailPage() {
       });
 
       if (response.success) {
+        // Update the application data with the new status and any updated fields from the response
         setApplicationData({
           ...applicationData,
           status: newStatus as 'pending' | 'under_review' | 'approved' | 'rejected' | 'waitlisted',
-          adminRemarks: remarks
+          adminRemarks: remarks,
+          reviewedBy: response.data?.reviewedBy || applicationData.reviewedBy,
+          reviewedAt: response.data?.reviewedAt || applicationData.reviewedAt
         });
         
         toast({
           title: 'Success',
           description: `Application ${newStatus} successfully`,
         });
+        
+        // Refresh audit trail to show the new status change
+        setAuditTrailKey(prev => prev + 1);
       } else {
         throw new Error(response.message || 'Failed to update status');
       }
@@ -501,63 +522,151 @@ export default function ApplicationDetailPage() {
 
           <ScrollArea className="h-[76vh]">
             <div className="space-y-6">
+              
               {/* Status Update Section */}
-              {hasPermission('update_application_status') && (
+              {(hasPermission('update_application_status') || hasRole('admission_officer')) && (
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-lg">Status Management</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label className="text-sm font-medium">Update Status</Label>
-                        <div className="flex gap-2 mt-2">
-                          <Button
-                            size="sm"
-                            variant={applicationData.status === 'under_review' ? 'default' : 'outline'}
-                            onClick={() => handleStatusUpdate('under_review')}
-                            disabled={statusUpdateLoading}
-                          >
-                            Under Review
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant={applicationData.status === 'approved' ? 'default' : 'outline'}
-                            onClick={() => handleStatusUpdate('approved')}
-                            disabled={statusUpdateLoading}
-                          >
-                            Approve
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant={applicationData.status === 'rejected' ? 'default' : 'outline'}
-                            onClick={() => handleStatusUpdate('rejected')}
-                            disabled={statusUpdateLoading}
-                          >
-                            Reject
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant={applicationData.status === 'waitlisted' ? 'default' : 'outline'}
-                            onClick={() => handleStatusUpdate('waitlisted')}
-                            disabled={statusUpdateLoading}
-                          >
-                            Waitlist
-                          </Button>
+                    {/* Display approved status information */}
+                    {applicationData.status === 'approved' ? (
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-4 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <CheckCircle className="w-5 h-5 text-green-900" />
+                            <span className="text-lg font-semibold text-green-900">Application Approved</span>
+                          </div>
+                          <Badge className="bg-green-100 text-green-900 border-green-200">
+                            <CheckCircle className="w-3 h-3 mr-1" />
+                            Approved
+                          </Badge>
+                        </div>
+                        
+                        {applicationData.reviewedBy && (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                            <div>
+                              <Label className="text-green-900 font-medium">Approved By:</Label>
+                              <p className="text-green-900 mt-1">{applicationData.reviewedBy.name}</p>
+                              <p className="text-green-900 text-xs">{applicationData.reviewedBy.email}</p>
+                            </div>
+                            {applicationData.reviewedAt && (
+                              <div>
+                                <Label className="text-green-900 font-medium">Approved At:</Label>
+                                <p className="text-green-900 mt-1">{formatDateTime(applicationData.reviewedAt)}</p>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        
+                        {applicationData.adminRemarks && (
+                          <div>
+                            <Label className="text-green-900 font-medium">Admin Remarks:</Label>
+                            <p className="text-green-900 mt-1 bg-green-50 p-2 rounded border border-green-700">
+                              {applicationData.adminRemarks}
+                            </p>
+                          </div>
+                        )}
+                        
+                        <div className="pt-2 border-t border-green-200">
+                          <p className="text-green-900 text-sm">
+                            <AlertCircle className="w-4 h-4 inline mr-1" />
+                            {hasRole('super_admin') 
+                              ? 'As super admin, you can override this status if needed.'
+                              : 'Status cannot be changed once approved. Contact administrator if changes are needed.'
+                            }
+                          </p>
+                        </div>
+                        
+                        {/* Super Admin Override Section */}
+                        {hasRole('super_admin') && (
+                          <div className="pt-3 border-t border-green-200">
+                            <Label className="text-green-900 font-medium text-sm mb-2 block">Super Admin Override:</Label>
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleStatusUpdate('under_review')}
+                                disabled={statusUpdateLoading}
+                                className="border-yellow-300 text-yellow-700 hover:bg-yellow-50"
+                              >
+                                Set Under Review
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleStatusUpdate('rejected')}
+                                disabled={statusUpdateLoading}
+                                className="border-red-300 text-red-700 hover:bg-red-50"
+                              >
+                                Reject
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleStatusUpdate('waitlisted')}
+                                disabled={statusUpdateLoading}
+                                className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                              >
+                                Waitlist
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label className="text-sm font-medium">Update Status</Label>
+                          <div className="flex gap-2 mt-2">
+                            <Button
+                              size="sm"
+                              variant={applicationData.status === 'under_review' ? 'default' : 'outline'}
+                              onClick={() => handleStatusUpdate('under_review')}
+                              disabled={statusUpdateLoading}
+                            >
+                              Under Review
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleStatusUpdate('approved')}
+                              disabled={statusUpdateLoading}
+                            >
+                              Approve
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant={applicationData.status === 'rejected' ? 'default' : 'outline'}
+                              onClick={() => handleStatusUpdate('rejected')}
+                              disabled={statusUpdateLoading}
+                            >
+                              Reject
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant={applicationData.status === 'waitlisted' ? 'default' : 'outline'}
+                              onClick={() => handleStatusUpdate('waitlisted')}
+                              disabled={statusUpdateLoading}
+                            >
+                              Waitlist
+                            </Button>
+                          </div>
+                        </div>
+                        <div>
+                          <Label htmlFor="remarks" className="text-sm font-medium">Admin Remarks</Label>
+                          <Textarea
+                            id="remarks"
+                            value={remarks}
+                            onChange={(e) => setRemarks(e.target.value)}
+                            placeholder="Add remarks..."
+                            className="mt-2"
+                            rows={3}
+                          />
                         </div>
                       </div>
-                      <div>
-                        <Label htmlFor="remarks" className="text-sm font-medium">Admin Remarks</Label>
-                        <Textarea
-                          id="remarks"
-                          value={remarks}
-                          onChange={(e) => setRemarks(e.target.value)}
-                          placeholder="Add remarks..."
-                          className="mt-2"
-                          rows={3}
-                        />
-                      </div>
-                    </div>
+                    )}
                   </CardContent>
                 </Card>
               )}
@@ -1069,8 +1178,8 @@ export default function ApplicationDetailPage() {
               {/* Audit Trail - Only visible to users with edit permissions */}
               {hasPermission('edit_applications') && (
                 <AuditTrail 
-                  key={auditTrailKey}
-                  applicationId={applicationId} 
+                  applicationId={applicationId}
+                  refreshKey={auditTrailKey}
                 />
               )}
             </div>
