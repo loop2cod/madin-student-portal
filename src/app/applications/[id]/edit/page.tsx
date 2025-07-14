@@ -111,7 +111,7 @@ export default function EditApplicationPage() {
 
       setIsLoading(true);
       try {
-        const response = await get(`/api/v1/admission/admin/${applicationId}`);
+        const response = await get<any>(`/api/v1/admission/admin/${applicationId}`);
         
         if (response.success) {
           setApplicationData(response.data);
@@ -131,14 +131,14 @@ export default function EditApplicationPage() {
     };
 
     fetchApplicationData();
-  }, [applicationId, toast]);
+  }, [applicationId,activeTab]);
 
   const handleSaveSection = async (section: string, data: any) => {
     if (!applicationData) return;
 
     setSaving(true);
     try {
-      const response = await put(`/api/v1/admission/admin/${applicationData._id}/edit/${section}`, data);
+      const response = await put<any>(`/api/v1/admission/admin/${applicationData._id}/edit/${section}`, data);
 
       if (response.success) {
         // Update the application data
@@ -256,7 +256,7 @@ export default function EditApplicationPage() {
             </div>
             <div className="flex items-start space-x-2">
               <Badge className={getStatusColor(applicationData.status)}>
-                <span className="ml-1">{applicationData.status.toUpperCase()}</span>
+                <span className="ml-1">{(`${applicationData?.status}`)?.toUpperCase()}</span>
               </Badge>
               <Badge variant="outline">
                 {getCurrentStageDisplay(applicationData.currentStage)}

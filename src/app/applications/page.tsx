@@ -23,6 +23,7 @@ import {
   SortAsc,
   SortDesc,
   RefreshCw,
+  Building2,
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -501,6 +502,22 @@ export default function ApplicationsPage() {
                                     .join(', ')}
                                 </p>
                               )}
+                            </div>
+                          )}
+
+                          {/* Department Assignment Display */}
+                          {application.department && (
+                            <div className="mt-2 p-2 bg-green-50 rounded-md border border-green-200">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-2">
+                                  <Building2 className="w-3 h-3 text-green-600" />
+                                  <span className="text-xs font-medium text-green-800">Department:</span>
+                                  <span className="text-xs text-green-900 font-semibold">{application.department}</span>
+                                </div>
+                                <Badge variant="outline" className="text-xs border-green-500 text-green-700">
+                                  Assigned
+                                </Badge>
+                              </div>
                             </div>
                           )}
 

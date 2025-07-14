@@ -22,13 +22,17 @@ import {
   AlertCircle,
   Edit3,
   History,
-  Calendar
+  Calendar,
+  Building2,
+  ArrowRight
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAuth } from '@/contexts/AuthContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { DashboardLayout } from '@/components/DashboardLayout';
+import { DepartmentAssignment } from '@/components/DepartmentAssignment';
+import { AuditTrail } from '@/components/AuditTrail';
 
 interface ApplicationData {
   _id: string;
@@ -85,6 +89,7 @@ interface ApplicationData {
       programLevel: string;
       programName: string;
       mode: string;
+      specialization?: string;
       branchPreferences: Array<{
         branch: string;
         priority: number;
@@ -152,6 +157,15 @@ interface ApplicationData {
   reviewedAt?: string;
   adminRemarks?: string;
   department?: string;
+  preferredBranches?: Array<{
+    branch: string;
+    priority: number;
+    programLevel: string;
+    programName: string;
+    mode?: string;
+    specialization?: string;
+  }>;
+  canAssignDepartment?: boolean;
 }
 
 export default function ApplicationDetailPage() {
@@ -164,8 +178,7 @@ export default function ApplicationDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [statusUpdateLoading, setStatusUpdateLoading] = useState(false);
   const [remarks, setRemarks] = useState('');
-  const [auditLogs, setAuditLogs] = useState([]);
-  const [loadingAuditLogs, setLoadingAuditLogs] = useState(false);
+  const [auditTrailKey, setAuditTrailKey] = useState(0);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -174,16 +187,11 @@ export default function ApplicationDetailPage() {
 
       setIsLoading(true);
       try {
-        const response = await get(`/api/v1/admission/admin/${applicationId}`);
+        const response = await get<any>(`/api/v1/admission/admin/${applicationId}`);
         
         if (response.success) {
           setApplicationData(response.data);
           setRemarks(response.data.adminRemarks || '');
-          
-          // Fetch audit logs if user has edit permissions
-          if (hasPermission('edit_applications')) {
-            fetchAuditLogs();
-          }
         } else {
           throw new Error(response.message || 'Failed to fetch application data');
         }
@@ -202,31 +210,14 @@ export default function ApplicationDetailPage() {
     fetchApplicationData();
   }, [applicationId, toast, hasPermission]);
 
-  const fetchAuditLogs = async () => {
-    if (!applicationId) return;
 
-    setLoadingAuditLogs(true);
-    try {
-      const response = await get(`/api/v1/admission/admin/${applicationId}/audit-logs`);
-      
-      if (response.success) {
-        setAuditLogs(response.data.logs || []);
-      } else {
-        console.error('Failed to fetch audit logs:', response.message);
-      }
-    } catch (error) {
-      console.error('Error fetching audit logs:', error);
-    } finally {
-      setLoadingAuditLogs(false);
-    }
-  };
 
   const handleStatusUpdate = async (newStatus: string) => {
     if (!applicationData) return;
 
     setStatusUpdateLoading(true);
     try {
-      const response = await put(`/api/v1/admission/admin/${applicationData._id}/status`, {
+      const response = await put<any>(`/api/v1/admission/admin/${applicationData._id}/status`, {
         status: newStatus,
         remarks: remarks
       });
@@ -254,6 +245,17 @@ export default function ApplicationDetailPage() {
       });
     } finally {
       setStatusUpdateLoading(false);
+    }
+  };
+
+  const handleDepartmentAssigned = (newDepartment: string) => {
+    if (applicationData) {
+      setApplicationData({
+        ...applicationData,
+        department: newDepartment
+      });
+      // Refresh audit trail to show the new department assignment log
+      setAuditTrailKey(prev => prev + 1);
     }
   };
 
@@ -560,6 +562,96 @@ export default function ApplicationDetailPage() {
                 </Card>
               )}
 
+              {/* Department Management Section */}
+              {(hasPermission('edit_applications') && (applicationData.canAssignDepartment || hasPermission('update_application_status'))) && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center">
+                      <Building2 className="w-5 h-5 mr-2" />
+                      Department Management
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Current Department Status */}
+                      <div className="space-y-3">
+                        <div>
+                          <Label className="text-sm font-medium text-gray-700">Current Department</Label>
+                          <div className="mt-2 p-3 bg-gray-50 rounded-lg border">
+                            {applicationData.department ? (
+                              <div className="flex items-center justify-between">
+                                <span className="font-medium text-gray-900">{applicationData.department}</span>
+                                <Badge variant="default" className="text-xs">
+                                  <CheckCircle className="w-3 h-3 mr-1" />
+                                  Assigned
+                                </Badge>
+                              </div>
+                            ) : (
+                              <div className="flex items-center text-gray-500">
+                                <AlertCircle className="w-4 h-4 mr-2" />
+                                <span>No department assigned</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Preferred Branches Display */}
+                        {applicationData.preferredBranches && applicationData.preferredBranches.length > 0 && (
+                          <div>
+                            <Label className="text-sm font-medium text-gray-700">Applicant's Preferred Branches</Label>
+                            <div className="mt-2 space-y-2">
+                              {applicationData.preferredBranches
+                                .sort((a, b) => a.priority - b.priority)
+                                .slice(0, 3) // Show only top 3 preferences
+                                .map((branch, index) => (
+                                  <div key={index} className="flex items-center justify-between p-2 bg-blue-50 rounded border border-blue-200">
+                                    <div className="flex items-center space-x-2">
+                                      <Badge variant="outline" className="text-xs">
+                                        {branch.priority}
+                                      </Badge>
+                                      <span className="text-sm font-medium text-blue-900">{branch.branch}</span>
+                                      {applicationData.department === branch.branch && (
+                                        <Badge variant="default" className="text-xs bg-green-100 text-green-800">
+                                          Current
+                                        </Badge>
+                                      )}
+                                    </div>
+                                  </div>
+                                ))}
+                              {applicationData.preferredBranches.length > 3 && (
+                                <p className="text-xs text-gray-500">
+                                  +{applicationData.preferredBranches.length - 3} more preferences
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Department Assignment Actions */}
+                      <div className="space-y-3">
+                        <div>
+                          <Label className="text-sm font-medium text-gray-700">Department Assignment</Label>
+                          <div className="mt-2 space-y-3">
+                            <DepartmentAssignment
+                              applicationId={applicationData.applicationId}
+                              currentDepartment={applicationData.department}
+                              onDepartmentAssigned={handleDepartmentAssigned}
+                            />
+                            
+                            <div className="text-xs text-gray-500 space-y-1">
+                              <p>• Departments can be assigned from applicant's preferred branches</p>
+                              <p>• Manual assignment to any department is also allowed</p>
+                              <p>• All assignments are logged for audit purposes</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
               {/* Application Summary */}
               <Card>
                 <CardHeader>
@@ -584,7 +676,16 @@ export default function ApplicationDetailPage() {
                     </div>
                     <div>
                       <Label className="text-sm font-medium text-gray-700">Department</Label>
-                      <p className="text-sm text-gray-900">{applicationData.department || 'Not assigned'}</p>
+                      <div className="flex items-center space-x-2 mt-1">
+                        <p className="text-sm text-gray-900">
+                          {applicationData.department || 'Not assigned'}
+                        </p>
+                        {applicationData.department && (
+                          <Badge variant="outline" className="text-xs">
+                            Assigned
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -834,7 +935,7 @@ export default function ApplicationDetailPage() {
                               <p className="text-sm text-blue-900">{applicationData.educationDetails.programDetails.mode}</p>
                             </div>
                           )}
-                          {applicationData.educationDetails.programDetails?.specialization && (
+                          {applicationData.educationDetails?.programDetails?.specialization && (
                             <div>
                               <Label className="text-sm font-medium text-blue-800">Specialization</Label>
                               <p className="text-sm text-blue-900">{applicationData.educationDetails.programDetails.specialization}</p>
@@ -967,52 +1068,10 @@ export default function ApplicationDetailPage() {
 
               {/* Audit Trail - Only visible to users with edit permissions */}
               {hasPermission('edit_applications') && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center text-lg">
-                      <History className="w-5 h-5 mr-2" />
-                      Audit Trail
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {loadingAuditLogs ? (
-                      <div className="flex justify-center items-center py-8">
-                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
-                        <span className="ml-3 text-gray-600">Loading audit logs...</span>
-                      </div>
-                    ) : auditLogs.length > 0 ? (
-                      <div className="space-y-4">
-                        {auditLogs.map((log: any, index: number) => (
-                          <div key={index} className="border-l-4 border-blue-500 pl-4 py-2">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center space-x-2">
-                                <Badge variant="outline" className="text-xs">
-                                  {log.section.replace('_', ' ').toUpperCase()}
-                                </Badge>
-                                <span className="text-sm font-medium text-gray-900">
-                                  {log.action.toUpperCase()}
-                                </span>
-                              </div>
-                              <div className="flex items-center space-x-2 text-xs text-gray-500">
-                                <Calendar className="w-3 h-3" />
-                                <span>{format(new Date(log.timestamp), 'dd/MM/yyyy hh:mm a')}</span>
-                              </div>
-                            </div>
-                            <p className="text-sm text-gray-700 mt-1">{log.description}</p>
-                            <div className="text-xs text-gray-500 mt-1">
-                              <span className="font-medium">By:</span> {log.editedBy.name} ({log.editedBy.email}) - {log.editedBy.role}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-center py-8 text-gray-500">
-                        <History className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-                        <p>No audit logs available</p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                <AuditTrail 
+                  key={auditTrailKey}
+                  applicationId={applicationId} 
+                />
               )}
             </div>
           </ScrollArea>
