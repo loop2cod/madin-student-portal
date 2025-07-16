@@ -112,7 +112,7 @@ const EditDeclarationForm: React.FC<DeclarationFormProps> = ({
                 I agree to inform the institution immediately of any changes to the information provided in this application.
               </p>
               <p>
-                I understand that the institution's decision on admission matters is final and binding.
+                I understand that the institution&apos;s decision on admission matters is final and binding.
               </p>
             </div>
           </div>

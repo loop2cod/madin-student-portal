@@ -11,7 +11,8 @@ import {
   Shield,
   Building,
   LogOut,
-  User
+  User,
+  MessageCircle
 } from "lucide-react"
 import {
   Sidebar,
@@ -58,6 +59,12 @@ const getNavigationItems = (user: any) => {
         permission: "view_all_applications"
       },
       {
+        title: "WhatsApp Portal",
+        url: "/whatsapp",
+        icon: MessageCircle,
+        permission: "view_all_applications"
+      },
+      {
         title: "Analytics",
         url: "/analytics",
         icon: BarChart3,
@@ -91,6 +98,12 @@ const getNavigationItems = (user: any) => {
         title: "Quick Admission",
         url: "/quick-admission",
         icon: UserPlus,
+        permission: "view_all_applications"
+      },
+      {
+        title: "WhatsApp Portal",
+        url: "/whatsapp",
+        icon: MessageCircle,
         permission: "view_all_applications"
       },
       {

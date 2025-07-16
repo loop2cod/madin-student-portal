@@ -51,7 +51,7 @@ const EditEducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
   const initializeFormData = () => {
     if (!selectedProgram) return;
 
-    let initialData = { programDetails: selectedProgram };
+    let initialData:any = { programDetails: selectedProgram };
 
     if (selectedProgram.programLevel === 'mba') {
       initialData = {

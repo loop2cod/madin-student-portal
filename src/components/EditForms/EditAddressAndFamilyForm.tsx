@@ -362,7 +362,7 @@ const EditAddressAndFamilyForm: React.FC<AddressAndFamilyFormProps> = ({
               <h3 className="font-medium text-gray-900">Parents Details</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="fatherName">Father's Name *</Label>
+                  <Label htmlFor="fatherName">Father&apos;s Name</Label>
                   <Input
                     id="fatherName"
                     value={formData.parents.fatherName}
@@ -374,7 +374,7 @@ const EditAddressAndFamilyForm: React.FC<AddressAndFamilyFormProps> = ({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="fatherMobile">Father's Mobile *</Label>
+                  <Label htmlFor="fatherMobile">Father&apos;s Mobile</Label>
                   <Input
                     id="fatherMobile"
                     value={formData.parents.fatherMobile}
@@ -386,7 +386,7 @@ const EditAddressAndFamilyForm: React.FC<AddressAndFamilyFormProps> = ({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="motherName">Mother's Name *</Label>
+                  <Label htmlFor="motherName">Mother&apos;s Name</Label>
                   <Input
                     id="motherName"
                     value={formData.parents.motherName}
@@ -398,7 +398,7 @@ const EditAddressAndFamilyForm: React.FC<AddressAndFamilyFormProps> = ({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="motherMobile">Mother's Mobile *</Label>
+                  <Label htmlFor="motherMobile">Mother&apos;s Mobile *</Label>
                   <Input
                     id="motherMobile"
                     value={formData.parents.motherMobile}

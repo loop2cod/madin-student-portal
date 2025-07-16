@@ -17,24 +17,10 @@ import {
   Award
 } from 'lucide-react';
 
-interface AnalyticsData {
-  totalApplications: number;
-  totalUsers: number;
-  statusStats: Array<{ _id: string; count: number }>;
-  departmentStats: Array<{ _id: string; count: number }>;
-  monthlyStats: Array<{ _id: { year: number; month: number }; count: number }>;
-  userStats: Array<{ _id: string; count: number }>;
-  recentTrends: {
-    applicationsThisMonth: number;
-    applicationsLastMonth: number;
-    usersThisMonth: number;
-    usersLastMonth: number;
-  };
-}
 
 export default function AnalyticsPage() {
   const { user } = useAuth();
-  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
+  const [analytics, setAnalytics] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -200,7 +186,7 @@ export default function AnalyticsPage() {
                 <div className="text-2xl font-bold">
                   {analytics?.statusStats.length > 0 ? (
                     Math.round(
-                      ((analytics.statusStats.find(s => s._id === 'approved')?.count || 0) / 
+                      ((analytics.statusStats.find((s:any) => s._id === 'approved')?.count || 0) / 
                        analytics.totalApplications) * 100
                     )
                   ) : 0}%
@@ -227,7 +213,7 @@ export default function AnalyticsPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {analytics?.statusStats.map((stat) => (
+                  {analytics?.statusStats.map((stat:any) => (
                     <div key={stat._id} className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <div className={`w-3 h-3 rounded-full ${getStatusColor(stat._id)}`} />
@@ -258,7 +244,7 @@ export default function AnalyticsPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {analytics?.userStats.map((stat) => (
+                  {analytics?.userStats.map((stat:any) => (
                     <div key={stat._id} className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-full bg-teal-700" />
@@ -291,7 +277,7 @@ export default function AnalyticsPage() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {analytics.departmentStats.map((dept) => (
+                  {analytics.departmentStats.map((dept:any) => (
                     <div key={dept._id} className="p-4 bg-gray-50 rounded-lg">
                       <h4 className="font-semibold text-gray-900 mb-2">{dept._id}</h4>
                       <div className="flex items-center justify-between">
@@ -322,7 +308,7 @@ export default function AnalyticsPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {analytics.monthlyStats.slice(-12).map((stat) => (
+                  {analytics.monthlyStats.slice(-12).map((stat:any) => (
                     <div key={`${stat._id.year}-${stat._id.month}`} className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Calendar className="w-4 h-4 text-gray-400" />

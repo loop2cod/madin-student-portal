@@ -161,7 +161,7 @@ export const DepartmentAssignment: React.FC<DepartmentAssignmentProps> = ({
       <div className="space-y-3">
         <h4 className="font-medium text-gray-900 flex items-center">
           <Star className="w-4 h-4 mr-2 text-yellow-500" />
-          Applicant's Preferred Branches
+          Applicant&apos;s Preferred Branches
         </h4>
         <div className="grid gap-2">
           {branchesData.preferredBranches.map((branch, index) => (

@@ -67,7 +67,7 @@ export default function EditUserPage() {
       const response = await get<UserResponse>(`/api/v1/admin/users/${userId}`);
       
       if (response.success) {
-        const userData = response.data;
+        const userData:any = response.data;
         setUser(userData);
         setFormData({
           name: userData.name,
@@ -232,7 +232,7 @@ export default function EditUserPage() {
           <div className="p-6">
             <div className="text-center">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">User Not Found</h2>
-              <p className="text-gray-600 mb-6">The user you're looking for doesn't exist.</p>
+              <p className="text-gray-600 mb-6">The user you&apos;re looking for doesn&apos;t exist.</p>
               <Link href="/users">
                 <Button>
                   <ArrowLeft className="w-4 h-4 mr-2" />

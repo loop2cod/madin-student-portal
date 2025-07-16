@@ -707,7 +707,7 @@ export default function ApplicationDetailPage() {
                         {/* Preferred Branches Display */}
                         {applicationData.preferredBranches && applicationData.preferredBranches.length > 0 && (
                           <div>
-                            <Label className="text-sm font-medium text-gray-700">Applicant's Preferred Branches</Label>
+                            <Label className="text-sm font-medium text-gray-700">Applicant&apos;s Preferred Branches</Label>
                             <div className="mt-2 space-y-2">
                               {applicationData.preferredBranches
                                 .sort((a, b) => a.priority - b.priority)
@@ -749,7 +749,7 @@ export default function ApplicationDetailPage() {
                             />
                             
                             <div className="text-xs text-gray-500 space-y-1">
-                              <p>• Departments can be assigned from applicant's preferred branches</p>
+                              <p>• Departments can be assigned from applicant&apos;s preferred branches</p>
                               <p>• Manual assignment to any department is also allowed</p>
                               <p>• All assignments are logged for audit purposes</p>
                             </div>
