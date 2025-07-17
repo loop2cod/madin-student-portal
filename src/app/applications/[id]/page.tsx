@@ -7,7 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
-import { get, put } from '@/utilities/AxiosInterceptor';
+import { Input } from '@/components/ui/input';
+import { get, put, post } from '@/utilities/AxiosInterceptor';
 import { format } from 'date-fns';
 import { 
   ArrowLeft, 
@@ -161,6 +162,7 @@ interface ApplicationData {
   };
   reviewedAt?: string;
   adminRemarks?: string;
+  admissionNumber?: string;
   department?: string;
   preferredBranches?: Array<{
     branch: string;
@@ -184,6 +186,10 @@ export default function ApplicationDetailPage() {
   const [statusUpdateLoading, setStatusUpdateLoading] = useState(false);
   const [remarks, setRemarks] = useState('');
   const [auditTrailKey, setAuditTrailKey] = useState(0);
+  const [admissionNumber, setAdmissionNumber] = useState('');
+  const [isCheckingAdmissionNumber, setIsCheckingAdmissionNumber] = useState(false);
+  const [admissionNumberError, setAdmissionNumberError] = useState('');
+  const [showAdmissionNumberInput, setShowAdmissionNumberInput] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -215,7 +221,47 @@ export default function ApplicationDetailPage() {
     fetchApplicationData();
   }, [applicationId, toast, hasPermission]);
 
+  const checkAdmissionNumberAvailability = async (admissionNumberToCheck: string) => {
+    if (!admissionNumberToCheck.trim()) {
+      setAdmissionNumberError('');
+      return;
+    }
 
+    setIsCheckingAdmissionNumber(true);
+    setAdmissionNumberError('');
+
+    try {
+      const response = await post<any>('/api/v1/admission/admin/check-admission-number', {
+        admissionNumber: admissionNumberToCheck.trim()
+      });
+
+      if (response.success) {
+        if (!response.data.available) {
+          setAdmissionNumberError('This admission number is already assigned to another application');
+        }
+      } else {
+        setAdmissionNumberError(response.message || 'Failed to check admission number');
+      }
+    } catch (error) {
+      console.error('Error checking admission number:', error);
+      setAdmissionNumberError('Failed to check admission number availability');
+    } finally {
+      setIsCheckingAdmissionNumber(false);
+    }
+  };
+
+  const handleAdmissionNumberChange = (value: string) => {
+    setAdmissionNumber(value);
+    if (value.trim()) {
+      // Debounce the availability check
+      const timeoutId = setTimeout(() => {
+        checkAdmissionNumberAvailability(value);
+      }, 500);
+      return () => clearTimeout(timeoutId);
+    } else {
+      setAdmissionNumberError('');
+    }
+  };
 
   const handleStatusUpdate = async (newStatus: string) => {
     if (!applicationData) return;
@@ -231,12 +277,40 @@ export default function ApplicationDetailPage() {
       return;
     }
 
+    // If approving and admission number is required
+    if (newStatus === 'approved' && !applicationData.admissionNumber) {
+      if (!admissionNumber.trim()) {
+        toast({
+          title: 'Admission Number Required',
+          description: 'Please enter an admission number to approve the application.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      if (admissionNumberError) {
+        toast({
+          title: 'Invalid Admission Number',
+          description: admissionNumberError,
+          variant: 'destructive',
+        });
+        return;
+      }
+    }
+
     setStatusUpdateLoading(true);
     try {
-      const response = await put<any>(`/api/v1/admission/admin/${applicationData._id}/status`, {
+      const requestBody: any = {
         status: newStatus,
         remarks: remarks
-      });
+      };
+
+      // Include admission number if approving
+      if (newStatus === 'approved' && admissionNumber.trim()) {
+        requestBody.admissionNumber = admissionNumber.trim();
+      }
+
+      const response = await put<any>(`/api/v1/admission/admin/${applicationData._id}/status`, requestBody);
 
       if (response.success) {
         // Update the application data with the new status and any updated fields from the response
@@ -245,13 +319,25 @@ export default function ApplicationDetailPage() {
           status: newStatus as 'pending' | 'under_review' | 'approved' | 'rejected' | 'waitlisted',
           adminRemarks: remarks,
           reviewedBy: response.data?.reviewedBy || applicationData.reviewedBy,
-          reviewedAt: response.data?.reviewedAt || applicationData.reviewedAt
+          reviewedAt: response.data?.reviewedAt || applicationData.reviewedAt,
+          admissionNumber: response.data?.admissionNumber || applicationData.admissionNumber
         });
+        
+        const successMessage = newStatus === 'approved' && response.data?.admissionNumber 
+          ? `Application ${newStatus} successfully. Admission Number: ${response.data.admissionNumber}`
+          : `Application ${newStatus} successfully`;
         
         toast({
           title: 'Success',
-          description: `Application ${newStatus} successfully`,
+          description: successMessage,
         });
+        
+        // Clear admission number input after successful approval
+        if (newStatus === 'approved') {
+          setAdmissionNumber('');
+          setAdmissionNumberError('');
+          setShowAdmissionNumberInput(false);
+        }
         
         // Refresh audit trail to show the new status change
         setAuditTrailKey(prev => prev + 1);
@@ -512,6 +598,11 @@ export default function ApplicationDetailPage() {
               </div>
               <h1 className="text-2xl font-semibold text-gray-900">Application Details</h1>
               <p className="text-gray-600 text-sm">Application ID: {applicationData.applicationId}</p>
+              {applicationData.admissionNumber && (
+                <p className="text-green-700 text-sm font-medium">
+                  Admission Number: <span className="font-bold">{applicationData.admissionNumber}</span>
+                </p>
+              )}
             </div>
             <div className="flex items-start space-x-2">
               <Badge className={getStatusColor(applicationData.status)}>
@@ -559,21 +650,27 @@ export default function ApplicationDetailPage() {
                           </Badge>
                         </div>
                         
-                        {applicationData.reviewedBy && (
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                          {applicationData.admissionNumber && (
+                            <div>
+                              <Label className="text-green-900 font-medium">Admission Number:</Label>
+                              <p className="text-green-900 mt-1 font-bold text-lg">{applicationData.admissionNumber}</p>
+                            </div>
+                          )}
+                          {applicationData.reviewedBy && (
                             <div>
                               <Label className="text-green-900 font-medium">Approved By:</Label>
                               <p className="text-green-900 mt-1">{applicationData.reviewedBy.name}</p>
                               <p className="text-green-900 text-xs">{applicationData.reviewedBy.email}</p>
                             </div>
-                            {applicationData.reviewedAt && (
-                              <div>
-                                <Label className="text-green-900 font-medium">Approved At:</Label>
-                                <p className="text-green-900 mt-1">{formatDateTime(applicationData.reviewedAt)}</p>
-                              </div>
-                            )}
-                          </div>
-                        )}
+                          )}
+                          {applicationData.reviewedAt && (
+                            <div>
+                              <Label className="text-green-900 font-medium">Approved At:</Label>
+                              <p className="text-green-900 mt-1">{formatDateTime(applicationData.reviewedAt)}</p>
+                            </div>
+                          )}
+                        </div>
                         
                         {applicationData.adminRemarks && (
                           <div>
@@ -631,7 +728,8 @@ export default function ApplicationDetailPage() {
                         )}
                       </div>
                     ) : (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <Label className="text-sm font-medium">Update Status</Label>
                           <div className="flex gap-2 mt-2">
@@ -646,7 +744,13 @@ export default function ApplicationDetailPage() {
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => handleStatusUpdate('approved')}
+                              onClick={() => {
+                                if (!applicationData.admissionNumber) {
+                                  setShowAdmissionNumberInput(true);
+                                } else {
+                                  handleStatusUpdate('approved');
+                                }
+                              }}
                               disabled={statusUpdateLoading}
                             >
                               Approve
@@ -681,6 +785,60 @@ export default function ApplicationDetailPage() {
                           />
                         </div>
                       </div>
+                      
+                      {showAdmissionNumberInput && !applicationData.admissionNumber && (
+                        <div className="mt-4 p-4 border border-blue-200 rounded-lg bg-blue-50">
+                          <div className="space-y-3">
+                            <div>
+                              <Label htmlFor="admissionNumber" className="text-sm font-medium text-blue-900">
+                                Enter Admission Number <span className="text-red-500">*</span>
+                              </Label>
+                              <Input
+                                id="admissionNumber"
+                                type="text"
+                                value={admissionNumber}
+                                onChange={(e) => handleAdmissionNumberChange(e.target.value)}
+                                placeholder="e.g., MAD/2025-26/1234"
+                                className="mt-1"
+                                disabled={isCheckingAdmissionNumber}
+                              />
+                              {isCheckingAdmissionNumber && (
+                                <p className="text-xs text-blue-600 mt-1">Checking availability...</p>
+                              )}
+                              {admissionNumberError && (
+                                <p className="text-xs text-red-600 mt-1">{admissionNumberError}</p>
+                              )}
+                              {admissionNumber && !admissionNumberError && !isCheckingAdmissionNumber && (
+                                <p className="text-xs text-green-600 mt-1">✓ Admission number is available</p>
+                              )}
+                            </div>
+                            
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                onClick={() => handleStatusUpdate('approved')}
+                                disabled={statusUpdateLoading || !admissionNumber.trim() || !!admissionNumberError || isCheckingAdmissionNumber}
+                                className="bg-green-600 hover:bg-green-700"
+                              >
+                                {statusUpdateLoading ? 'Approving...' : 'Approve with Admission Number'}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  setShowAdmissionNumberInput(false);
+                                  setAdmissionNumber('');
+                                  setAdmissionNumberError('');
+                                }}
+                                disabled={statusUpdateLoading}
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      </>
                     )}
                   </CardContent>
                 </Card>
