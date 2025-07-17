@@ -33,6 +33,7 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { DepartmentAssignment } from '@/components/DepartmentAssignment';
 import { AuditTrail } from '@/components/AuditTrail';
+import { PaymentUpdateForm } from '@/components/PaymentUpdateForm';
 
 interface ApplicationData {
   _id: string;
@@ -139,7 +140,7 @@ interface ApplicationData {
       status: string;
       paymentMethod: string;
       receipt: string;
-      verifiedAt: string;
+      verifiedAt?: string;
       createdAt: string;
     };
   };
@@ -276,6 +277,20 @@ export default function ApplicationDetailPage() {
         department: newDepartment
       });
       // Refresh audit trail to show the new department assignment log
+      setAuditTrailKey(prev => prev + 1);
+    }
+  };
+
+  const handlePaymentUpdate = (updatedPayment: any) => {
+    if (applicationData) {
+      setApplicationData({
+        ...applicationData,
+        paymentDetails: {
+          ...applicationData.paymentDetails,
+          application_fee: updatedPayment
+        }
+      });
+      // Refresh audit trail to show the payment update log
       setAuditTrailKey(prev => prev + 1);
     }
   };
@@ -1105,44 +1120,12 @@ export default function ApplicationDetailPage() {
               </Card>
 
               {/* Payment Details */}
-              {applicationData.paymentDetails && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center text-lg">
-                      <CreditCard className="w-5 h-5 mr-2" />
-                      Payment Details
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                      <div>
-                        <Label className="text-sm font-medium text-gray-700">Amount</Label>
-                        <p className="text-sm text-gray-900">
-                          {applicationData?.paymentDetails?.application_fee?.currency} {applicationData?.paymentDetails?.application_fee?.amount}
-                        </p>
-                      </div>
-                      <div>
-                        <Label className="text-sm font-medium text-gray-700">Payment Status</Label>
-                        <Badge variant={applicationData?.paymentDetails?.application_fee?.status === 'verified' ? 'default' : 'secondary'}>
-                          {applicationData?.paymentDetails?.application_fee?.status}
-                        </Badge>
-                      </div>
-                      <div>
-                        <Label className="text-sm font-medium text-gray-700">Payment Method</Label>
-                        <p className="text-sm text-gray-900">{applicationData?.paymentDetails?.application_fee?.paymentMethod}</p>
-                      </div>
-                      <div>
-                        <Label className="text-sm font-medium text-gray-700">Payment Date</Label>
-                        <p className="text-sm text-gray-900">{applicationData?.paymentDetails?.application_fee?.createdAt ? formatDate(applicationData?.paymentDetails?.application_fee?.createdAt) : 'NIL'}</p>
-                      </div>
-                      <div>
-                        <Label className="text-sm font-medium text-gray-700">Receipt</Label>
-                        <p className="text-sm text-gray-900">{applicationData?.paymentDetails?.application_fee?.receipt}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+              <PaymentUpdateForm
+                applicationId={applicationData._id}
+                paymentDetails={applicationData.paymentDetails?.application_fee || null}
+                onPaymentUpdate={handlePaymentUpdate}
+                canEdit={hasRole('super_admin') || hasRole('admission_officer')}
+              />
 
               {/* Declaration */}
               {applicationData.declaration?.agreed && (

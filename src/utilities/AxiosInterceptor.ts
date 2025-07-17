@@ -1,7 +1,7 @@
 import axios, { AxiosRequestConfig } from "axios";
 import Cookies from "js-cookie";
 
-// || process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+// || process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"; || "https://server.mcem.site"
 
 const API_URL = "https://server.mcem.site"
 
