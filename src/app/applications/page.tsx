@@ -441,11 +441,11 @@ export default function ApplicationsPage() {
                             <div className="flex items-start space-x-3">
                               <div>
                                 <p className="text-sm font-semibold text-gray-900">
-                                  {application.personalDetails.fullName ||
-                                    `${application.personalDetails.firstName} ${application.personalDetails.lastName}`}
+                                  {application?.personalDetails?.fullName ||
+                                    `${application?.personalDetails?.firstName} ${application?.personalDetails?.lastName}`}
                                 </p>
                                 <p className="text-xs text-gray-600 font-medium">
-                                  ID: {application.applicationId}
+                                  ID: {application?.applicationId}
                                 </p>
                               </div>
                             </div>
