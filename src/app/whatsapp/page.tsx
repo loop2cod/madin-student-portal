@@ -48,7 +48,6 @@ import WhatsAppAudioPlayer from "@/components/WhatsAppAudioPlayer";
 import WhatsAppImageViewer from "@/components/WhatsAppImageViewer";
 import WhatsAppVideoPlayer from "@/components/WhatsAppVideoPlayer";
 import { format } from 'date-fns';
-import './whatsapp.css';
 
 const WhatsAppPortal = () => {
   const isMobile = useIsMobile();
@@ -76,33 +75,33 @@ const WhatsAppPortal = () => {
     return 'single';
   };
 
-  // Helper function to get message bubble border radius
+  // Helper function to get message bubble border radius (WhatsApp-like)
   const getMessageBubbleRadius = (senderType: string, position: string) => {
     if (senderType === 'admin') {
-      // Right side messages (sent by admin)
+      // Right side messages (sent by me - purple bubbles)
       switch (position) {
         case "single":
-          return "rounded-tl-2xl rounded-tr-sm rounded-bl-2xl rounded-br-2xl"
+          return "rounded-tl-2xl rounded-tr-sm rounded-bl-md rounded-br-2xl"
         case "first":
-          return "rounded-tl-2xl rounded-tr-sm rounded-bl-2xl rounded-br-sm"
+          return "rounded-tl-2xl rounded-tr-2xl rounded-bl-md rounded-br-sm"
         case "middle":
-          return "rounded-tl-2xl rounded-tr-sm rounded-bl-2xl rounded-br-sm"
+          return "rounded-tl-2xl rounded-tr-sm rounded-bl-md rounded-br-sm"
         case "last":
-          return "rounded-tl-2xl rounded-tr-sm rounded-bl-2xl rounded-br-2xl"
+          return "rounded-tl-2xl rounded-tr-sm rounded-bl-md rounded-br-md"
         default:
           return "rounded-2xl"
       }
     } else {
-      // Left side messages (received)
+      // Left side messages (received - gray bubbles)
       switch (position) {
         case "single":
-          return "rounded-tl-sm rounded-tr-2xl rounded-bl-2xl rounded-br-2xl"
+          return "rounded-tl-sm rounded-tr-2xl rounded-bl-2xl rounded-br-md"
         case "first":
-          return "rounded-tl-sm rounded-tr-2xl rounded-bl-sm rounded-br-2xl"
+          return "rounded-tl-2xl rounded-tr-2xl rounded-bl-sm rounded-br-md"
         case "middle":
-          return "rounded-tl-sm rounded-tr-2xl rounded-bl-sm rounded-br-2xl"
+          return "rounded-tl-sm rounded-tr-2xl rounded-bl-sm rounded-br-md"
         case "last":
-          return "rounded-tl-sm rounded-tr-2xl rounded-bl-2xl rounded-br-2xl"
+          return "rounded-tl-sm rounded-tr-2xl rounded-bl-2xl rounded-br-md"
         default:
           return "rounded-2xl"
       }
@@ -420,18 +419,6 @@ const WhatsAppPortal = () => {
     return date.toLocaleDateString();
   };
 
-  const getMessageStatusIcon = (status: string) => {
-    switch (status) {
-      case 'sent':
-        return <Clock className="w-4 h-4 text-muted-foreground" />;
-      case 'delivered':
-        return <Check className="w-4 h-4 text-muted-foreground" />;
-      case 'read':
-        return <CheckCheck className="w-4 h-4 text-blue-500" />;
-      default:
-        return null;
-    }
-  };
 
   // Contact Sidebar Component
   const ContactSidebar = ({ className = "" }: { className?: string }) => (
@@ -698,7 +685,7 @@ const WhatsAppPortal = () => {
 
             {/* Messages Area */}
             <ScrollArea className="flex-1 p-4 max-h-[78vh] overflow-y-auto">
-              <div className="space-y-4">
+              <div className="space-y-1">
                 {loading && messages.length === 0 ? (
                   <div className="flex items-center justify-center py-8">
                     <Loader2 className="h-6 w-6 animate-spin" />
@@ -725,7 +712,7 @@ const WhatsAppPortal = () => {
                       }`}
                     >
                       <div
-                        className={`message-bubble ${message.senderType === 'admin' ? 'sent' : 'received'} max-w-xs lg:max-w-md px-3 py-2 shadow-sm relative ${bubbleRadius}`}
+                        className={`${message.senderType === 'admin' ? 'sent' : 'received'} max-w-xs lg:max-w-md relative `} 
                       >
                         {/* Image message */}
                         {message.messageType === 'image' && message.mediaUrl && (
@@ -757,6 +744,7 @@ const WhatsAppPortal = () => {
                             <WhatsAppAudioPlayer
                               src={getMediaUrl(message.mediaUrl)!}
                               duration={message.duration}
+                              isOutgoing={message.senderType === 'admin'}
                             />
                           </div>
                         )}
@@ -866,14 +854,26 @@ const WhatsAppPortal = () => {
                         {/* Text content for most message types */}
                         {(message.messageType === 'text' ||
                           (!['image', 'video', 'audio', 'document', 'location', 'contact', 'sticker', 'interactive', 'reaction'].includes(message.messageType) && message.content?.text)) && (
-                          <div>
-                            <p className="text-sm whitespace-pre-wrap break-words">
-                              {messageText || 'Message content not available'}
-                            </p>
-                            {/* Link previews */}
-                            {links.length > 0 && links.map((link, linkIndex) => (
-                              <LinkPreview key={linkIndex} url={link} />
-                            ))}
+                          <div className={`flex items-end justify-between gap-2 px-4 py-2 shadow-sm ${bubbleRadius} ${message.senderType === 'admin' ? 'bg-primary text-white' : 'bg-muted text-primary'}`}>
+                            {message.senderType === 'admin' && (
+                              <span className="text-[0.6rem] text-gray-300 flex-shrink-0 -mb-1 -ml-2.5">
+                                {format(message.timestamp, 'HH:mm')}
+                              </span>
+                            )}
+                            <div className="flex-1">
+                              <p className="text-sm font-medium whitespace-pre-wrap break-words">
+                                {messageText || 'Message content not available'}
+                              </p>
+                              {/* Link previews */}
+                              {links.length > 0 && links.map((link, linkIndex) => (
+                                <LinkPreview key={linkIndex} url={link} />
+                              ))}
+                            </div>
+                            {message.senderType !== 'admin' && (
+                              <span className="text-[0.6rem] text-gray-300 flex-shrink-0 -mb-1 -mr-2.5">
+                                {format(message.timestamp, 'HH:mm')}
+                              </span>
+                            )}
                           </div>
                         )}
 
@@ -884,13 +884,6 @@ const WhatsAppPortal = () => {
                           </div>
                         )}
 
-                        {/* Message timestamp and status */}
-                        <div className="flex items-center justify-end gap-1 mt-2 -mb-1">
-                          <span className={`text-[0.67rem] ${message.senderType === 'admin' ? 'text-gray-600' : 'text-gray-500'}`}>
-                            {format(message.timestamp, 'HH:mm')}
-                          </span>
-                          {message.senderType === 'admin' && getMessageStatusIcon(message.status)}
-                        </div>
                       </div>
                     </div>
                     )
@@ -900,7 +893,7 @@ const WhatsAppPortal = () => {
                 {/* Typing indicator */}
                 {otherUserTyping && (
                   <div className="flex justify-start">
-                    <div className="message-bubble received bg-white text-gray-800 px-4 py-2">
+                    <div className="message-bubble received bg-gray-700 text-white px-4 py-2 rounded-tl-sm rounded-tr-2xl rounded-bl-2xl rounded-br-md shadow-sm">
                       <div className="typing-dots">
                         <div className="typing-dot"></div>
                         <div className="typing-dot"></div>
@@ -998,28 +991,12 @@ const WhatsAppPortal = () => {
               <Button variant="ghost" size="sm" onClick={handleBackToContacts}>
                 <ArrowLeft className="w-4 h-4" />
               </Button>
-              <Avatar className="w-10 h-10">
-                <AvatarImage src={selectedContact.avatar} alt={selectedContact.name} />
-                <AvatarFallback>
-                  {selectedContact.name.split(' ').map((n: string) => n[0]).join('')}
-                </AvatarFallback>
-              </Avatar>
               <div>
-                <h3 className="font-medium">{selectedContact.name}</h3>
-                <p className="text-sm text-gray-500">
-                  {selectedContact.status === 'online' ? 'Online' : 
-                   selectedContact.status === 'typing' ? 'Typing...' : 'Last seen recently'}
-                </p>
+                <p className="font-medium text-sm">{selectedContact.name}</p>
               </div>
             </div>
             
             <div className="flex items-center space-x-2">
-              <Button variant="ghost" size="sm">
-                <Phone className="w-4 h-4" />
-              </Button>
-              <Button variant="ghost" size="sm">
-                <Video className="w-4 h-4" />
-              </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm">
@@ -1046,7 +1023,7 @@ const WhatsAppPortal = () => {
 
           {/* Messages Area */}
           <ScrollArea className="flex-1 p-4 whatsapp-bg whatsapp-scrollbar">
-            <div className="space-y-4">
+            <div className="space-y-1">
               {loading && messages.length === 0 ? (
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="h-6 w-6 animate-spin" />
@@ -1073,7 +1050,7 @@ const WhatsAppPortal = () => {
                     }`}
                   >
                     <div
-                      className={`message-bubble ${message.senderType === 'admin' ? 'sent' : 'received'} max-w-xs px-3 py-2 shadow-sm relative ${bubbleRadius}`}
+                      className={`${message.senderType === 'admin' ? 'sent' : 'received'} max-w-xs relative`}
                     >
                       {/* Image message */}
                       {message.messageType === 'image' && message.mediaUrl && (
@@ -1212,14 +1189,26 @@ const WhatsAppPortal = () => {
                       {/* Text content for most message types */}
                       {(message.messageType === 'text' ||
                         (!['image', 'video', 'audio', 'document', 'location', 'contact', 'sticker', 'interactive', 'reaction'].includes(message.messageType) && message.content?.text)) && (
-                        <div>
-                          <p className="text-sm whitespace-pre-wrap break-words">
-                            {messageText || 'Message content not available'}
-                          </p>
-                          {/* Link previews */}
-                          {links.length > 0 && links.map((link, linkIndex) => (
-                            <LinkPreview key={linkIndex} url={link} />
-                          ))}
+                        <div className={`flex items-end justify-between gap-2 px-4 py-2 shadow-sm  ${bubbleRadius} ${message.senderType === 'admin' ? 'bg-primary text-white' : 'bg-muted text-primary'}`}>
+                          {message.senderType === 'admin' && (
+                            <span className="text-[0.6rem] text-gray-300 flex-shrink-0 -mb-1 -ml-2.5">
+                              {format(message.timestamp, 'HH:mm')}
+                            </span>
+                          )}
+                          <div className="flex-1">
+                            <p className="text-sm font-medium whitespace-pre-wrap break-words">
+                              {messageText || 'Message content not available'}
+                            </p>
+                            {/* Link previews */}
+                            {links.length > 0 && links.map((link, linkIndex) => (
+                              <LinkPreview key={linkIndex} url={link} />
+                            ))}
+                          </div>
+                          {message.senderType !== 'admin' && (
+                            <span className="text-[0.6rem] text-gray-300 flex-shrink-0 -mb-1 -mr-2.5">
+                              {format(message.timestamp, 'HH:mm')}
+                            </span>
+                          )}
                         </div>
                       )}
 
@@ -1230,13 +1219,6 @@ const WhatsAppPortal = () => {
                         </div>
                       )}
 
-                      {/* Message timestamp and status */}
-                      <div className="flex items-center justify-end gap-1 mt-2 -mb-1">
-                        <span className={`text-[0.67rem] ${message.senderType === 'admin' ? 'text-gray-600' : 'text-gray-500'}`}>
-                          {format(message.timestamp, 'HH:mm')}
-                        </span>
-                        {message.senderType === 'admin' && getMessageStatusIcon(message.status)}
-                      </div>
                     </div>
                   </div>
                   )
@@ -1247,7 +1229,7 @@ const WhatsAppPortal = () => {
               {/* Typing indicator */}
               {otherUserTyping && (
                 <div className="flex justify-start">
-                  <div className="message-bubble received bg-white text-gray-800 px-4 py-2">
+                  <div className="message-bubble received bg-gray-700 text-white px-4 py-2 rounded-tl-sm rounded-tr-2xl rounded-bl-2xl rounded-br-md shadow-sm">
                     <div className="typing-dots">
                       <div className="typing-dot"></div>
                       <div className="typing-dot"></div>
