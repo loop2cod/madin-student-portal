@@ -12,7 +12,8 @@ import {
   Building,
   LogOut,
   User,
-  MessageCircle
+  MessageCircle,
+  GraduationCap
 } from "lucide-react"
 import {
   Sidebar,
@@ -44,6 +45,12 @@ const getNavigationItems = (user: any) => {
         title: "User Management",
         url: "/users",
         icon: Users,
+        permission: "view_all_users"
+      },
+      {
+        title: "Student Logins",
+        url: "/students",
+        icon: GraduationCap,
         permission: "view_all_users"
       },
       {
@@ -86,6 +93,12 @@ const getNavigationItems = (user: any) => {
         title: "Manage Users",
         url: "/users",
         icon: Users,
+        permission: "view_all_users"
+      },
+      {
+        title: "Student Logins",
+        url: "/students",
+        icon: GraduationCap,
         permission: "view_all_users"
       },
       {
