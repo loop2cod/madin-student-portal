@@ -87,8 +87,8 @@ export default function NotificationsPage() {
     <DashboardLayout 
       title="Notifications"
       breadcrumbs={[
-        { label: "Dashboard", href: "/dashboard" },
-        { label: "Notifications" }
+        { title: "Dashboard", href: "/dashboard" },
+        { title: "Notifications" }
       ]}
     >
       <div className="space-y-6">

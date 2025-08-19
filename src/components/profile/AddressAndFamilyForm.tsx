@@ -284,7 +284,7 @@ export const AddressAndFamilyForm: React.FC<AddressAndFamilyFormProps> = ({
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="fatherName">Father's Name *</Label>
+              <Label htmlFor="fatherName">Father&apos;s Name *</Label>
               <Input
                 id="fatherName"
                 value={formData.parents.fatherName}
@@ -298,7 +298,7 @@ export const AddressAndFamilyForm: React.FC<AddressAndFamilyFormProps> = ({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="fatherMobile">Father's Mobile</Label>
+              <Label htmlFor="fatherMobile">Father&apos;s Mobile</Label>
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <Input
@@ -316,7 +316,7 @@ export const AddressAndFamilyForm: React.FC<AddressAndFamilyFormProps> = ({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="motherName">Mother's Name</Label>
+              <Label htmlFor="motherName">Mother&apos;s Name</Label>
               <Input
                 id="motherName"
                 value={formData.parents.motherName}
@@ -326,7 +326,7 @@ export const AddressAndFamilyForm: React.FC<AddressAndFamilyFormProps> = ({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="motherMobile">Mother's Mobile</Label>
+              <Label htmlFor="motherMobile">Mother&apos;s Mobile</Label>
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <Input

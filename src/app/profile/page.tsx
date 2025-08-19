@@ -123,7 +123,7 @@ export default function ProfilePage() {
   const handleSavePersonalDetails = async (personalDetails: any) => {
     try {
       setSaving(true);
-      const response = await patch('/api/v1/auth/student/profile/personal-details', {
+      const response = await patch<any>('/api/v1/auth/student/profile/personal-details', {
         personalDetails
       });
 
@@ -149,7 +149,7 @@ export default function ProfilePage() {
   const handleSaveAddressAndFamily = async (addressFamilyDetails: any) => {
     try {
       setSaving(true);
-      const response = await patch('/api/v1/auth/student/profile/address-family', {
+      const response = await patch<any>('/api/v1/auth/student/profile/address-family', {
         addressFamilyDetails
       });
 
@@ -175,7 +175,7 @@ export default function ProfilePage() {
   const handleSaveProgramSelection = async (programSelections: any) => {
     try {
       setSaving(true);
-      const response = await patch('/api/v1/auth/student/profile/program-selection', {
+      const response = await patch<any>('/api/v1/auth/student/profile/program-selection', {
         programSelections
       });
 
@@ -201,7 +201,7 @@ export default function ProfilePage() {
   const handleSaveEducationDetails = async (educationDetails: any) => {
     try {
       setSaving(true);
-      const response = await patch('/api/v1/auth/student/profile/education-details', {
+      const response = await patch<any>('/api/v1/auth/student/profile/education-details', {
         educationDetails
       });
 
@@ -241,7 +241,7 @@ export default function ProfilePage() {
               <FileText className="w-12 h-12 mx-auto text-gray-400 mb-4" />
               <h2 className="text-xl font-semibold mb-2">No Application Found</h2>
               <p className="text-gray-600 mb-4">
-                We couldn't find your application data. This might be a temporary issue.
+                We couldn&apos;t find your application data. This might be a temporary issue.
               </p>
               <Button onClick={() => router.push('/dashboard')}>
                 <ArrowLeft className="w-4 h-4 mr-2" />
@@ -258,10 +258,11 @@ export default function ProfilePage() {
     <DashboardLayout 
       title="My Profile"
       breadcrumbs={[
-        { label: "Dashboard", href: "/dashboard" },
-        { label: "My Profile" }
+        { title: "Dashboard", href: "/dashboard" },
+        { title: "My Profile" }
       ]}
     >
+
       <div className="space-y-6">
         {/* Profile Header */}
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-6 text-white mb-6">

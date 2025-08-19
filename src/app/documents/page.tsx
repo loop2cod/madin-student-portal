@@ -70,8 +70,8 @@ export default function DocumentsPage() {
     <DashboardLayout 
       title="Documents"
       breadcrumbs={[
-        { label: "Dashboard", href: "/dashboard" },
-        { label: "Documents" }
+        { title: "Dashboard", href: "/dashboard" },
+        { title: "Documents" }
       ]}
     >
       <div className="space-y-6">

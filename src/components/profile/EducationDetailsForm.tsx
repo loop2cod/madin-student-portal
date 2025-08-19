@@ -217,7 +217,7 @@ export function EducationDetailsForm({ applicationData, onSave, saving }: Educat
         <Alert className="border-blue-200 bg-blue-50">
           <Info className="w-4 h-4 text-blue-600" />
           <AlertDescription className="text-blue-800">
-            You have unsaved changes. Don't forget to save your updates.
+            You have unsaved changes. Don&apos;t forget to save your updates.
           </AlertDescription>
         </Alert>
       )}

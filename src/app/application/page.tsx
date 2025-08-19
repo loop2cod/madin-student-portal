@@ -11,8 +11,8 @@ export default function ApplicationStatusPage() {
     <DashboardLayout 
       title="Application Status"
       breadcrumbs={[
-        { label: "Dashboard", href: "/dashboard" },
-        { label: "Application Status" }
+        { title: "Dashboard", href: "/dashboard" },
+        { title: "Application Status" }
       ]}
     >
       <div className="space-y-6">

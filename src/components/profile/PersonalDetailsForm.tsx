@@ -150,7 +150,7 @@ export const PersonalDetailsForm: React.FC<PersonalDetailsFormProps> = ({
             <Label>Date of Birth *</Label>
             <DatePicker
               date={formData.dob}
-              onDateChange={(date) => handleInputChange('dob', date)}
+              onDateChange={(date:any) => handleInputChange('dob', date)}
               placeholder="Select your date of birth"
               className={errors.dob ? 'border-red-500' : ''}
             />

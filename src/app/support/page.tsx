@@ -46,8 +46,8 @@ export default function SupportPage() {
     <DashboardLayout 
       title="Help & Support"
       breadcrumbs={[
-        { label: "Dashboard", href: "/dashboard" },
-        { label: "Help & Support" }
+        { title: "Dashboard", href: "/dashboard" },
+        { title: "Help & Support" }
       ]}
     >
       <div className="space-y-6">
