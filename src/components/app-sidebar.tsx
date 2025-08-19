@@ -3,17 +3,11 @@
 import * as React from "react"
 import {
   GalleryVerticalEnd,
-  Users,
+  User,
   FileText,
-  Settings,
-  BarChart3,
-  UserPlus,
-  Shield,
-  Building,
   LogOut,
   User,
-  MessageCircle,
-  GraduationCap
+  MessageCircle
 } from "lucide-react"
 import {
   Sidebar,
@@ -23,9 +17,10 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 import { NavMain } from "./nav-main";
-import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useRouter } from "next/navigation";
+import Cookies from 'js-cookie';
 
 // Role-based navigation items
 const getNavigationItems = (user: any) => {
@@ -45,12 +40,6 @@ const getNavigationItems = (user: any) => {
         title: "User Management",
         url: "/users",
         icon: Users,
-        permission: "view_all_users"
-      },
-      {
-        title: "Student Logins",
-        url: "/students",
-        icon: GraduationCap,
         permission: "view_all_users"
       },
       {
@@ -93,12 +82,6 @@ const getNavigationItems = (user: any) => {
         title: "Manage Users",
         url: "/users",
         icon: Users,
-        permission: "view_all_users"
-      },
-      {
-        title: "Student Logins",
-        url: "/students",
-        icon: GraduationCap,
         permission: "view_all_users"
       },
       {
@@ -183,15 +166,27 @@ const getRoleIcon = (role: string) => {
 
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { user, logout, hasPermission } = useAuth();
-  
-  // Get navigation items based on user role
-  const navigationItems = getNavigationItems(user);
-  
-  // Filter items based on permissions
-  const filteredItems = navigationItems.filter(item => 
-    !item.permission || hasPermission(item.permission as any)
-  );
+  const [user, setUser] = React.useState<StudentUser | null>(null);
+  const [loading, setLoading] = React.useState(true);
+  const router = useRouter();
+
+  React.useEffect(() => {
+    // Get user data from localStorage or API call
+    const userData = localStorage.getItem('studentUser');
+    if (userData) {
+      setUser(JSON.parse(userData));
+    }
+    setLoading(false);
+  }, []);
+
+  const handleLogout = () => {
+    // Clear auth data
+    localStorage.removeItem('studentUser');
+    Cookies.remove('token');
+    
+    // Redirect to login
+    router.push('/auth/login');
+  };
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -199,12 +194,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <div
           className="peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-hidden ring-sidebar-ring transition-[width,height,padding] hover:bg-primary-foreground-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-primary-foreground-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:bg-primary-foreground-accent data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-primary-foreground-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
         >
-          <div className="flex aspect-square size-6 items-center justify-center rounded-xl bg-primary text-primary-foreground mx-auto">
-            <GalleryVerticalEnd className="size-4" />
+          <div className="flex aspect-square size-6 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 text-white mx-auto">
+            <GraduationCap className="size-4" />
           </div>
           <div className="grid flex-1 text-left text-sm leading-tight">
             <span className="truncate font-semibold">
-              MADIN
+              MADIN Student Portal
             </span>
             <span className="truncate text-xs">College of Engineering & Management</span>
           </div>
@@ -212,11 +207,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       
       <SidebarContent>
-        <NavMain items={filteredItems} />
+        <NavMain items={studentNavigationItems} />
       </SidebarContent>
       
       <SidebarFooter>
-        {user && (
+        {loading ? (
+          <div className="p-4">
+            <div className="animate-pulse space-y-2">
+              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+              <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+            </div>
+          </div>
+        ) : user ? (
           <div className="p-4">
             <div className="flex items-center gap-2 mb-3">
               <div className="flex-1">
@@ -225,27 +227,45 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               </div>
             </div>
             
-            <div className="flex items-center gap-2 mb-3">
-              <Badge variant="secondary" className="text-xs">
-                {getRoleIcon(user.role)}
-                <span className="ml-1">{getRoleDisplayName(user.role)}</span>
+            <div className="flex flex-col gap-2 mb-3">
+              <Badge variant="secondary" className="text-xs w-fit">
+                <User className="w-3 h-3 mr-1" />
+                Student
               </Badge>
+              {user.admissionNumber && (
+                <Badge variant="outline" className="text-xs w-fit">
+                  <BookOpen className="w-3 h-3 mr-1" />
+                  {user.admissionNumber}
+                </Badge>
+              )}
               {user.department && (
-                <Badge variant="outline" className="text-xs">
-                  <Building className="w-3 h-3 mr-1" />
+                <Badge variant="outline" className="text-xs w-fit">
+                  <GraduationCap className="w-3 h-3 mr-1" />
                   {user.department}
                 </Badge>
               )}
             </div>
             
             <Button 
-              onClick={logout}
+              onClick={handleLogout}
               variant="ghost" 
               size="sm" 
               className="w-full justify-start"
             >
               <LogOut className="w-4 h-4 mr-2" />
               Logout
+            </Button>
+          </div>
+        ) : (
+          <div className="p-4">
+            <Button 
+              onClick={() => router.push('/auth/login')}
+              variant="ghost" 
+              size="sm" 
+              className="w-full justify-start"
+            >
+              <User className="w-4 h-4 mr-2" />
+              Login
             </Button>
           </div>
         )}
