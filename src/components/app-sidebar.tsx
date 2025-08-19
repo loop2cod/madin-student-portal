@@ -6,8 +6,14 @@ import {
   User,
   FileText,
   LogOut,
-  User,
-  MessageCircle
+  Users,
+  MessageCircle,
+  UserPlus,
+  BarChart3,
+  Settings,
+  Building,
+  GraduationCap,
+  BookOpen
 } from "lucide-react"
 import {
   Sidebar,
@@ -22,151 +28,30 @@ import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
 import Cookies from 'js-cookie';
 
-// Role-based navigation items
-const getNavigationItems = (user: any) => {
-  const items = [
-    {
-      title: "Dashboard",
-      url: "/dashboard",
-      icon: GalleryVerticalEnd,
-      permission: "view_admin_dashboard"
-    }
-  ];
 
-  // Super Admin items
-  if (user?.role === 'super_admin') {
-    items.push(
-      {
-        title: "User Management",
-        url: "/users",
-        icon: Users,
-        permission: "view_all_users"
-      },
-      {
-        title: "All Applications",
-        url: "/applications",
-        icon: FileText,
-        permission: "view_all_applications"
-      },
-      {
-        title: "Quick Admission",
-        url: "/quick-admission",
-        icon: UserPlus,
-        permission: "view_all_applications"
-      },
-      {
-        title: "WhatsApp Portal",
-        url: "/whatsapp",
-        icon: MessageCircle,
-        permission: "view_all_applications"
-      },
-      {
-        title: "Analytics",
-        url: "/analytics",
-        icon: BarChart3,
-        permission: "view_analytics"
-      },
-      {
-        title: "System Settings",
-        url: "/settings",
-        icon: Settings,
-        permission: "manage_settings"
-      }
-    );
+// Student navigation items
+const studentNavigationItems = [
+  {
+    title: "Dashboard",
+    url: "/dashboard",
+    icon: GalleryVerticalEnd,
+  },
+  {
+    title: "My Application",
+    url: "/application",
+    icon: FileText,
+  },
+  {
+    title: "My Profile",
+    url: "/profile",
+    icon: User,
   }
+];
 
-  // Admission Officer items
-  if (user?.role === 'admission_officer') {
-    items.push(
-      {
-        title: "Manage Users",
-        url: "/users",
-        icon: Users,
-        permission: "view_all_users"
-      },
-      {
-        title: "All Applications",
-        url: "/applications",
-        icon: FileText,
-        permission: "view_all_applications"
-      },
-      {
-        title: "Quick Admission",
-        url: "/quick-admission",
-        icon: UserPlus,
-        permission: "view_all_applications"
-      },
-      {
-        title: "WhatsApp Portal",
-        url: "/whatsapp",
-        icon: MessageCircle,
-        permission: "view_all_applications"
-      },
-      {
-        title: "Analytics",
-        url: "/analytics",
-        icon: BarChart3,
-        permission: "view_analytics"
-      },
-      {
-        title: "Add Staff",
-        url: "/users/create",
-        icon: UserPlus,
-        permission: "create_department_staff"
-      }
-    );
-  }
-
-  // Department Staff items
-  if (user?.role === 'department_staff') {
-    items.push(
-      {
-        title: "My Applications",
-        url: "/applications/department",
-        icon: FileText,
-        permission: "view_department_applications"
-      },
-      {
-        title: "Department",
-        url: "/department",
-        icon: Building,
-        permission: "view_department_applications"
-      }
-    );
-  }
-
-  return items;
-};
-
-const getRoleDisplayName = (role: string) => {
-  switch (role) {
-    case 'super_admin':
-      return 'Super Admin';
-    case 'admission_officer':
-      return 'Admission Officer';
-    case 'department_staff':
-      return 'Department Staff';
-    default:
-      return role;
-  }
-};
-
-const getRoleIcon = (role: string) => {
-  switch (role) {
-    case 'super_admin':
-      return <Shield className="w-3 h-3" />;
-    case 'admission_officer':
-      return <UserPlus className="w-3 h-3" />;
-    case 'department_staff':
-      return <Building className="w-3 h-3" />;
-    default:
-      return <User className="w-3 h-3" />;
-  }
-};
 
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const [user, setUser] = React.useState<StudentUser | null>(null);
+  const [user, setUser] = React.useState<any | null>(null);
   const [loading, setLoading] = React.useState(true);
   const router = useRouter();
 
