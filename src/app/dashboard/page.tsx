@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { User, BookOpen, FileText, Settings, GraduationCap, Bell, Download, HelpCircle, CreditCard } from 'lucide-react';
+import { User, BookOpen, FileText, Settings, GraduationCap, Bell, Download, HelpCircle, CreditCard, Award } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Cookies from 'js-cookie';
@@ -137,6 +137,22 @@ export default function StudentDashboard() {
             </Card>
           </Link>
 
+          <Link href="/certificates">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+              <CardContent className="p-6">
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                    <Award className="w-6 h-6 text-green-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">Certificates</h3>
+                    <p className="text-sm text-gray-500">Request certificates</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+
           <Link href="/profile">
             <Card className="hover:shadow-lg transition-shadow cursor-pointer">
               <CardContent className="p-6">
@@ -152,20 +168,6 @@ export default function StudentDashboard() {
               </CardContent>
             </Card>
           </Link>
-
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                  <CreditCard className="w-6 h-6 text-orange-600" />
-                </div>
-                <div>
-                  <h3 className="font-semibold">Fee Structure</h3>
-                  <p className="text-sm text-gray-500">View fee details</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
 
           <Link href="/support">
             <Card className="hover:shadow-lg transition-shadow cursor-pointer">

@@ -13,7 +13,8 @@ import {
   Settings,
   Building,
   GraduationCap,
-  BookOpen
+  BookOpen,
+  Award
 } from "lucide-react"
 import {
   Sidebar,
@@ -40,6 +41,16 @@ const studentNavigationItems = [
     title: "My Application",
     url: "/application",
     icon: FileText,
+  },
+  {
+    title: "Certificates",
+    url: "/certificates",
+    icon: Award,
+  },
+  {
+    title: "Documents",
+    url: "/documents",
+    icon: BookOpen,
   },
   {
     title: "My Profile",
