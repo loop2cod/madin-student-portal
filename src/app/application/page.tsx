@@ -743,8 +743,8 @@ export default function ApplicationPage() {
                       <Label className="text-sm font-medium text-blue-800">Branch Preferences</Label>
                       <div className="flex flex-wrap gap-2 mt-1">
                         {(educationBranches || selectionBranches)
-                          ?.sort((a, b) => a.priority - b.priority)
-                          .map((branch, index) => (
+                          ?.sort((a:any, b:any) => a.priority - b.priority)
+                          .map((branch:any, index:any) => (
                             <Badge key={index} variant="outline" className="text-xs bg-blue-100 text-blue-800">
                               {branch.priority}. {branch.branch}
                             </Badge>
@@ -792,7 +792,7 @@ export default function ApplicationPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {applicationData.educationDetails.educationData.map((row, index) => {
+                      {applicationData.educationDetails.educationData.map((row:any, index:any) => {
                         const selectedProgram = applicationData.programSelections?.find(p => p.selected);
                         const isMBA = selectedProgram?.programName?.toLowerCase().includes('mba');
                         
@@ -847,7 +847,7 @@ export default function ApplicationPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {applicationData.educationDetails.subjectScores.map((row, index: number) => (
+                      {applicationData.educationDetails.subjectScores.map((row:any, index: number) => (
                         <tr key={index} className="hover:bg-gray-50">
                           <td className="border border-gray-300 p-2 text-sm">{row.examination}</td>
                           <td className="border border-gray-300 p-2 text-sm">{row.physics}%</td>
@@ -866,7 +866,7 @@ export default function ApplicationPage() {
             {/* Entrance Examinations */}
             {applicationData.educationDetails?.entranceExams && (() => {
               const exams = applicationData.educationDetails.entranceExams;
-              const selectedExams = Object.entries(exams).filter(([, exam]) => exam.selected);
+              const selectedExams = Object.entries(exams).filter(([, exam]:any) => exam.selected);
               
               if (selectedExams.length === 0) return null;
               
@@ -874,7 +874,7 @@ export default function ApplicationPage() {
                 <div>
                   <h3 className="font-medium text-gray-900 mb-3">Entrance Examinations</h3>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {selectedExams.map(([examName, exam]) => (
+                    {selectedExams.map(([examName, exam]:any) => (
                       <div key={examName} className="p-3 bg-blue-50 rounded-md border border-blue-200">
                         <p className="font-medium text-sm text-blue-900">{examName.toUpperCase()}</p>
                         <p className="text-sm text-blue-700">Score: {exam.score || 'Not provided'}</p>

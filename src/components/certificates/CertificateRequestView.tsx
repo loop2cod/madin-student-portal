@@ -7,43 +7,9 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Download, FileText, Clock, CheckCircle, XCircle } from 'lucide-react';
 
-interface CertificateRequest {
-  id: string;
-  certificateType: string;
-  purpose: string;
-  status: string;
-  requestDate: string;
-  processedDate?: string;
-  serialNumber?: string;
-  processedBy?: {
-    name: string;
-    email: string;
-  };
-  generatedCertificatePath?: string;
-  addressedTo?: {
-    name: string;
-    relationship: string;
-    fatherName: string;
-    address: {
-      line1: string;
-      line2?: string;
-      city: string;
-      district: string;
-      state: string;
-      pincode: string;
-    };
-  };
-  academicYear: string;
-  currentYear: string;
-  currentSemester: string;
-  priorityLevel: string;
-  deliveryMethod: string;
-  remarks?: string;
-  rejectionReason?: string;
-}
 
 interface CertificateRequestViewProps {
-  request: CertificateRequest;
+  request: any;
   onDownload: () => void;
 }
 
@@ -154,7 +120,7 @@ export function CertificateRequestView({ request, onDownload }: CertificateReque
                 <p className="font-semibold">{request.addressedTo.relationship}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-500">Father's Name</label>
+                <label className="text-sm font-medium text-gray-500">Father&apos;s Name</label>
                 <p className="font-semibold">{request.addressedTo.fatherName}</p>
               </div>
             </div>

@@ -288,7 +288,7 @@ export const StudentFeePayment: React.FC = () => {
           Object.entries(effectiveFees).forEach(([feeType, feeAmount]) => {
             const remainingBalance = semester.remainingBalance[feeType] || 0;
             if (remainingBalance > 0) {
-              const existingBreakdown = breakdown.find(b => b.feeType === feeType);
+              const existingBreakdown:any = breakdown.find(b => b.feeType === feeType);
               if (existingBreakdown) {
                 existingBreakdown.amount += remainingBalance;
               } else {
@@ -302,8 +302,8 @@ export const StudentFeePayment: React.FC = () => {
         amount = calculateTotalPayable();
         feeAssignment.feeStructureSnapshot.semesters.forEach(semester => {
           const effectiveFees = getEffectiveFees(semester);
-          Object.entries(effectiveFees).forEach(([feeType, feeAmount]) => {
-            const existingBreakdown = breakdown.find(b => b.feeType === feeType);
+          Object.entries(effectiveFees).forEach(([feeType, feeAmount]:any) => {
+            const existingBreakdown:any = breakdown.find(b => b.feeType === feeType);
             if (existingBreakdown) {
               existingBreakdown.amount += feeAmount;
             } else {
@@ -316,7 +316,7 @@ export const StudentFeePayment: React.FC = () => {
       if (semesterStatus) {
         amount = semesterStatus.outstanding;
         // Add breakdown for unpaid fees only
-        Object.entries(semesterStatus.remainingBalance).forEach(([feeType, remainingBalance]) => {
+        Object.entries(semesterStatus.remainingBalance).forEach(([feeType, remainingBalance]:any) => {
           if (remainingBalance > 0) {
             breakdown.push({ feeType, amount: remainingBalance });
           }
@@ -327,7 +327,7 @@ export const StudentFeePayment: React.FC = () => {
         if (semester) {
           amount = calculateEffectiveTotal(semester);
           const effectiveFees = getEffectiveFees(semester);
-          Object.entries(effectiveFees).forEach(([feeType, feeAmount]) => {
+          Object.entries(effectiveFees).forEach(([feeType, feeAmount]:any) => {
             breakdown.push({ feeType, amount: feeAmount });
           });
         }
@@ -746,7 +746,7 @@ export const StudentFeePayment: React.FC = () => {
                     const effectiveFees = getEffectiveFees(semester);
                     const semesterStatus = getPaymentStatusForSemester(selectedSemester);
                     
-                    return Object.entries(effectiveFees).map(([feeType, amount]) => {
+                    return Object.entries(effectiveFees).map(([feeType, amount]:any) => {
                       const originalAmount = semester.fees[feeType as keyof typeof semester.fees];
                       const isCustomized = originalAmount !== amount;
                       
@@ -925,7 +925,7 @@ export const StudentFeePayment: React.FC = () => {
                             Secure Payment Gateway
                           </p>
                           <p className="text-xs text-yellow-700 mt-1">
-                            Your payment is processed through Razorpay's secure payment gateway. 
+                            Your payment is processed through Razorpay&apos;s secure payment gateway. 
                             Your card details are never stored on our servers.
                           </p>
                         </div>

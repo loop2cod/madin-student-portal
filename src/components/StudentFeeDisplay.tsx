@@ -337,7 +337,7 @@ export const StudentFeeDisplay: React.FC = () => {
                             </tr>
                           </thead>
                           <tbody>
-                            {Object.entries(getEffectiveFees(semester)).map(([feeType, amount]) => {
+                            {Object.entries(getEffectiveFees(semester)).map(([feeType, amount]:any) => {
                               const originalAmount = semester.fees[feeType as keyof typeof semester.fees];
                               const isCustomized = originalAmount !== amount;
                               
