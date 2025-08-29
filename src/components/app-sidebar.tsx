@@ -14,7 +14,9 @@ import {
   Building,
   GraduationCap,
   BookOpen,
-  Award
+  Award,
+  CreditCard,
+  History
 } from "lucide-react"
 import {
   Sidebar,
@@ -46,6 +48,16 @@ const studentNavigationItems = [
     title: "Certificates",
     url: "/certificates",
     icon: Award,
+  },
+  {
+    title: "Fee Payment",
+    url: "/fee-payment",
+    icon: CreditCard,
+  },
+  {
+    title: "Payment History",
+    url: "/payment-history",
+    icon: History,
   },
   {
     title: "Documents",
