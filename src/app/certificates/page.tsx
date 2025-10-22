@@ -63,10 +63,9 @@ export default function CertificatesPage() {
         setRequests(response.data);
       }
     } catch (error) {
-      console.error('Failed to fetch certificate requests:', error);
       toast({
         title: "Error",
-        description: "Failed to load certificate requests",
+        description: "Failed to load requests",
         variant: "destructive",
       });
     } finally {
@@ -141,7 +140,7 @@ export default function CertificatesPage() {
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold mb-2">Certificate Requests</h1>
+              <h1 className="text-2xl font-bold mb-2">Requests</h1>
               <p className="text-blue-100">
                 Request and download your academic certificates
               </p>
@@ -211,13 +210,12 @@ export default function CertificatesPage() {
           </Card>
         </div>
 
-        {/* Certificate Requests List */}
         <div className="space-y-4">
           {requests.length === 0 ? (
             <Card>
               <CardContent className="p-12 text-center">
                 <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No certificate requests</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No requests</h3>
                 <p className="text-gray-500 mb-4">You haven&apos;t requested any certificates yet.</p>
                 <Button onClick={() => setShowRequestForm(true)}>
                   <Plus className="w-4 h-4 mr-2" />

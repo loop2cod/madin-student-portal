@@ -45,7 +45,7 @@ const studentNavigationItems = [
     icon: FileText,
   },
   {
-    title: "Certificates",
+    title: "Student Requests",
     url: "/certificates",
     icon: Award,
   },
