@@ -92,20 +92,20 @@ export const ProgramSelectionForm: React.FC<ProgramSelectionFormProps> = ({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
-            <GraduationCap className="w-5 h-5 text-blue-600" />
+            <GraduationCap className="w-4 h-4 text-blue-600" />
             <span>Selected Programs</span>
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
+          <div className="space-y-3">
             {programSelections.map((program, index) => (
               <div
                 key={index}
-                className={`p-4 border rounded-lg ${
+                className={`p-2 border rounded-lg ${
                   program.selected 
                     ? 'border-green-300 bg-green-50' 
                     : 'border-gray-200 bg-gray-50'
@@ -114,9 +114,8 @@ export const ProgramSelectionForm: React.FC<ProgramSelectionFormProps> = ({
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center space-x-3 mb-2">
-                      <span className="text-2xl">{getProgramIcon(program.programLevel)}</span>
                       <div>
-                        <h4 className="font-semibold text-lg">
+                        <h4 className="font-semibold text-sm">
                           {program.programName}
                         </h4>
                         <div className="flex items-center space-x-2 mt-1">
@@ -150,10 +149,10 @@ export const ProgramSelectionForm: React.FC<ProgramSelectionFormProps> = ({
                     {/* Specialization for MBA Programs */}
                     {program.specialization && (
                       <div className="mt-3">
-                        <h5 className="text-sm font-medium text-gray-700 mb-1">
+                        <h5 className="text-xs font-medium text-gray-700 mb-1">
                           Specialization:
                         </h5>
-                        <Badge variant="outline" className="text-sm">
+                        <Badge variant="outline" className="text-xs">
                           {program.specialization}
                         </Badge>
                       </div>
@@ -171,21 +170,6 @@ export const ProgramSelectionForm: React.FC<ProgramSelectionFormProps> = ({
                 </div>
               </div>
             ))}
-          </div>
-
-          {/* Information Note */}
-          <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <div className="flex items-start space-x-2">
-              <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-              <div className="text-sm">
-                <h4 className="font-medium text-blue-900 mb-1">Program Selection Information</h4>
-                <p className="text-blue-700">
-                  Your program selections cannot be modified directly from this portal. 
-                  These selections were made during your application process and are now being used for admission processing.
-                  If you need to make changes to your program preferences, please contact the admission office.
-                </p>
-              </div>
-            </div>
           </div>
 
           {/* Department Assignment Info */}

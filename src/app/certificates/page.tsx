@@ -120,8 +120,8 @@ export default function CertificatesPage() {
   if (loading) {
     return (
       <DashboardLayout title="Certificates">
-        <div className="flex items-center justify-center min-h-64">
-          <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+        <div className="flex items-center justify-center min-h-48">
+          <div className="animate-spin w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full"></div>
         </div>
       </DashboardLayout>
     );
@@ -129,27 +129,23 @@ export default function CertificatesPage() {
 
   return (
     <DashboardLayout 
-      title="Certificates"
-      breadcrumbs={[
-        { title: "Dashboard", href: "/dashboard" },
-        { title: "Certificates" }
-      ]}
+      title="My Requests"
     >
-      <div className="space-y-6">
+      <div className="space-y-4 p-2">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-6 text-white">
-          <div className="flex items-center justify-between">
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-4 sm:p-6 text-white">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h1 className="text-2xl font-bold mb-2">Requests</h1>
-              <p className="text-blue-100">
-                Request and download your academic certificates
+              <h1 className="text-xl sm:text-2xl font-bold mb-1 sm:mb-2">Requests</h1>
+              <p className="text-blue-100 text-sm sm:text-base">
+                Request and download your academic requests
               </p>
             </div>
             <Dialog open={showRequestForm} onOpenChange={setShowRequestForm}>
               <DialogTrigger asChild>
-                <Button variant="outline" className="bg-white/20 border-white/30 text-white hover:bg-white/30">
-                  <Plus className="w-4 h-4 mr-2" />
-                  New Request
+                <Button variant="outline" size="sm" className="bg-white/20 border-white/30 text-white hover:bg-white/30 h-8 px-3">
+                  <Plus className="w-3 h-3 mr-1" />
+                  <span className="text-sm">New Request</span>
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
@@ -163,63 +159,63 @@ export default function CertificatesPage() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <Card>
-            <CardContent className="p-6">
+            <CardContent className="p-3">
               <div className="flex items-center">
-                <FileText className="w-8 h-8 text-blue-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">Total Requests</p>
-                  <p className="text-2xl font-bold">{requests.length}</p>
+                <FileText className="w-6 h-6 text-blue-600" />
+                <div className="ml-3">
+                  <p className="text-xs font-medium text-gray-500">Total</p>
+                  <p className="text-lg font-bold">{requests.length}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-6">
+            <CardContent className="p-3">
               <div className="flex items-center">
-                <Clock className="w-8 h-8 text-yellow-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">Pending</p>
-                  <p className="text-2xl font-bold">{requests.filter(r => r.status === 'pending').length}</p>
+                <Clock className="w-6 h-6 text-yellow-600" />
+                <div className="ml-3">
+                  <p className="text-xs font-medium text-gray-500">Pending</p>
+                  <p className="text-lg font-bold">{requests.filter(r => r.status === 'pending').length}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-6">
+            <CardContent className="p-3">
               <div className="flex items-center">
-                <CheckCircle className="w-8 h-8 text-green-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">Ready</p>
-                  <p className="text-2xl font-bold">{requests.filter(r => r.status === 'generated').length}</p>
+                <CheckCircle className="w-6 h-6 text-green-600" />
+                <div className="ml-3">
+                  <p className="text-xs font-medium text-gray-500">Ready</p>
+                  <p className="text-lg font-bold">{requests.filter(r => r.status === 'generated').length}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-6">
+            <CardContent className="p-3">
               <div className="flex items-center">
-                <Download className="w-8 h-8 text-purple-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">Delivered</p>
-                  <p className="text-2xl font-bold">{requests.filter(r => r.status === 'delivered').length}</p>
+                <Download className="w-6 h-6 text-purple-600" />
+                <div className="ml-3">
+                  <p className="text-xs font-medium text-gray-500">Delivered</p>
+                  <p className="text-lg font-bold">{requests.filter(r => r.status === 'delivered').length}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-3">
           {requests.length === 0 ? (
             <Card>
-              <CardContent className="p-12 text-center">
-                <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No requests</h3>
-                <p className="text-gray-500 mb-4">You haven&apos;t requested any certificates yet.</p>
-                <Button onClick={() => setShowRequestForm(true)}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Request Certificate
+              <CardContent className="p-8 text-center">
+                <FileText className="w-10 h-10 text-gray-400 mx-auto mb-3" />
+                <h3 className="text-base font-medium text-gray-900 mb-2">No requests</h3>
+                <p className="text-gray-500 mb-4 text-sm">You haven&apos;t requested any certificates yet.</p>
+                <Button onClick={() => setShowRequestForm(true)} size="sm">
+                  <Plus className="w-3 h-3 mr-1" />
+                  <span className="text-sm">Request Certificate</span>
                 </Button>
               </CardContent>
             </Card>
@@ -227,21 +223,21 @@ export default function CertificatesPage() {
             requests.map((request) => {
               const statusInfo = statusConfig[request.status as keyof typeof statusConfig];
               const StatusIcon = statusInfo.icon;
-              
+
               return (
-                <Card key={request.id} className="hover:shadow-lg transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
-                        <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                          <FileText className="w-6 h-6 text-blue-600" />
+                <Card key={request.id} className="hover:shadow-md transition-shadow">
+                  <CardContent className="p-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <FileText className="w-5 h-5 text-blue-600" />
                         </div>
-                        <div>
-                          <h3 className="font-semibold text-lg">
+                        <div className="min-w-0 flex-1">
+                          <h3 className="font-semibold text-base truncate">
                             {certificateTypeLabels[request.certificateType as keyof typeof certificateTypeLabels]}
                           </h3>
-                          <p className="text-sm text-gray-600 mb-1">Purpose: {request.purpose}</p>
-                          <div className="flex items-center space-x-4 text-sm text-gray-500">
+                          <p className="text-sm text-gray-600 mb-1 truncate">Purpose: {request.purpose}</p>
+                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
                             <span>Requested: {new Date(request.requestDate).toLocaleDateString('en-IN')}</span>
                             {request.processedDate && (
                               <span>Processed: {new Date(request.processedDate).toLocaleDateString('en-IN')}</span>
@@ -252,29 +248,31 @@ export default function CertificatesPage() {
                           </div>
                         </div>
                       </div>
-                      
-                      <div className="flex items-center space-x-3">
-                        <Badge className={statusInfo.color}>
+
+                      <div className="flex items-center space-x-2 self-end sm:self-auto">
+                        <Badge className={`${statusInfo.color} text-xs`}>
                           <StatusIcon className="w-3 h-3 mr-1" />
                           {statusInfo.label}
                         </Badge>
-                        
+
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => handleViewRequest(request)}
+                          className="h-8 px-2"
                         >
-                          <Eye className="w-4 h-4 mr-1" />
-                          View
+                          <Eye className="w-3 h-3 mr-1" />
+                          <span className="text-xs">View</span>
                         </Button>
-                        
+
                         {request.status === 'generated' && (
                           <Button
                             onClick={() => handleDownload(request)}
                             size="sm"
+                            className="h-8 px-2"
                           >
-                            <Download className="w-4 h-4 mr-1" />
-                            Download
+                            <Download className="w-3 h-3 mr-1" />
+                            <span className="text-xs">Download</span>
                           </Button>
                         )}
                       </div>

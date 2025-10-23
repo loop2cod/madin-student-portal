@@ -223,10 +223,6 @@ export default function ApplicationPage() {
     return (
       <DashboardLayout 
         title="Application Details"
-        breadcrumbs={[
-          { title: "Dashboard", href: "/dashboard" },
-          { title: "Application Details" }
-        ]}
       >
         <div className="flex justify-center items-center min-h-[400px]">
           <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
@@ -239,10 +235,6 @@ export default function ApplicationPage() {
     return (
       <DashboardLayout 
         title="Application Details"
-        breadcrumbs={[
-          { title: "Dashboard", href: "/dashboard" },
-          { title: "Application Details" }
-        ]}
       >
         <Card>
           <CardContent className="p-8 text-center">
@@ -265,10 +257,6 @@ export default function ApplicationPage() {
     return (
       <DashboardLayout 
         title="Application Details"
-        breadcrumbs={[
-          { title: "Dashboard", href: "/dashboard" },
-          { title: "Application Details" }
-        ]}
       >
         <Card>
           <CardContent className="p-8 text-center">
@@ -284,27 +272,23 @@ export default function ApplicationPage() {
   return (
     <DashboardLayout 
       title="Application Details"
-      breadcrumbs={[
-        { title: "Dashboard", href: "/dashboard" },
-        { title: "Application Details" }
-      ]}
     >
-      <div className="space-y-6">
+      <div className="space-y-6 p-2">
         {/* Status Overview */}
-        <div className={`bg-gradient-to-r ${getStatusGradient(applicationData.status)} rounded-lg p-6 text-white`}>
-          <div className="flex items-center justify-between">
+        <div className={`bg-gradient-to-r ${getStatusGradient(applicationData.status)} rounded-lg p-4 sm:p-6 text-white`}>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold mb-2">{getStatusTitle(applicationData.status)}</h1>
-              <p className="opacity-90">
+              <h1 className="text-xl sm:text-2xl font-bold mb-1 sm:mb-2">{getStatusTitle(applicationData.status)}</h1>
+              <p className="opacity-90 text-sm sm:text-base">
                 Application ID: {applicationData.applicationId}
               </p>
               {applicationData.admissionNumber && (
-                <p className="opacity-90 font-medium">
+                <p className="opacity-90 font-medium text-sm sm:text-base">
                   Admission Number: {applicationData.admissionNumber}
                 </p>
               )}
             </div>
-            <Badge variant="outline" className="bg-white/20 border-white/30 text-white">
+            <Badge variant="outline" className="bg-white/20 border-white/30 text-white self-start sm:self-auto">
               {getStatusIcon(applicationData.status)}
               <span className="ml-2">{applicationData.status.toUpperCase()}</span>
             </Badge>
@@ -315,23 +299,23 @@ export default function ApplicationPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
-              <FileText className="w-5 h-5" />
+              <FileText className="w-4 h-4" />
               <span>Application Summary</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
                 <Label className="text-sm font-medium text-gray-700">Application ID</Label>
-                <p className="text-lg font-semibold">{applicationData.applicationId}</p>
+                <p className="text-base font-semibold">{applicationData.applicationId}</p>
               </div>
               <div>
                 <Label className="text-sm font-medium text-gray-700">Submission Date</Label>
-                <p className="text-lg font-semibold">{formatDate(applicationData.createdAt)}</p>
+                <p className="text-base font-semibold">{formatDate(applicationData.createdAt)}</p>
               </div>
               <div>
                 <Label className="text-sm font-medium text-gray-700">Last Updated</Label>
-                <p className="text-lg font-semibold">{formatDate(applicationData.updatedAt)}</p>
+                <p className="text-base font-semibold">{formatDate(applicationData.updatedAt)}</p>
               </div>
               <div>
                 <Label className="text-sm font-medium text-gray-700">Current Status</Label>
@@ -343,12 +327,12 @@ export default function ApplicationPage() {
               {applicationData.department && (
                 <div>
                   <Label className="text-sm font-medium text-gray-700">Department</Label>
-                  <p className="text-lg font-semibold">{applicationData.department}</p>
+                  <p className="text-base font-semibold">{applicationData.department}</p>
                 </div>
               )}
               <div>
                 <Label className="text-sm font-medium text-gray-700">Mobile Number</Label>
-                <p className="text-lg font-semibold">{applicationData.mobile}</p>
+                <p className="text-base font-semibold">{applicationData.mobile}</p>
               </div>
             </div>
           </CardContent>
@@ -358,36 +342,36 @@ export default function ApplicationPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
-              <User className="w-5 h-5" />
+              <User className="w-4 h-4" />
               <span>Personal Details</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
                 <Label className="text-sm font-medium text-gray-700">Full Name</Label>
-                <p className="text-lg font-semibold">
-                  {applicationData.personalDetails.fullName || 
+                <p className="text-base font-semibold">
+                  {applicationData.personalDetails.fullName ||
                    `${applicationData.personalDetails.firstName} ${applicationData.personalDetails.lastName}`}
                 </p>
               </div>
               <div>
                 <Label className="text-sm font-medium text-gray-700">Date of Birth</Label>
-                <p className="text-lg font-semibold">{formatDate(applicationData.personalDetails.dob)}</p>
+                <p className="text-base font-semibold">{formatDate(applicationData.personalDetails.dob)}</p>
               </div>
               <div>
                 <Label className="text-sm font-medium text-gray-700">Gender</Label>
-                <p className="text-lg font-semibold capitalize">{applicationData.personalDetails.gender}</p>
+                <p className="text-base font-semibold capitalize">{applicationData.personalDetails.gender}</p>
               </div>
               <div>
                 <Label className="text-sm font-medium text-gray-700">Religion</Label>
-                <p className="text-lg font-semibold capitalize">{applicationData.personalDetails.religion}</p>
+                <p className="text-base font-semibold capitalize">{applicationData.personalDetails.religion}</p>
               </div>
               <div>
                 <Label className="text-sm font-medium text-gray-700">Email</Label>
                 <div className="flex items-center space-x-2">
                   <Mail className="w-4 h-4 text-gray-500" />
-                  <p className="text-lg font-semibold">{applicationData.personalDetails.email}</p>
+                  <p className="text-base font-semibold">{applicationData.personalDetails.email}</p>
                 </div>
               </div>
             </div>
@@ -677,239 +661,259 @@ export default function ApplicationPage() {
         )}
 
         {/* Education Details */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <BookOpen className="w-5 h-5" />
-              <span>Education Details</span>
+        <Card className="rounded-none border-secondary/20">
+          <CardHeader className="px-3 sm:px-4 py-3">
+            <CardTitle className="flex items-center text-base sm:text-lg">
+              <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+              Education Details ({applicationData.educationDetails?.programDetails?.programLevel?.toUpperCase() || 'N/A'})
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Selected Program Summary */}
-            {((applicationData.educationDetails?.programDetails) || 
-              (applicationData.programSelections?.find(p => p.selected))) && (
-              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                <h3 className="font-medium text-blue-900 mb-2">Selected Program</h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  <div>
-                    <Label className="text-sm font-medium text-blue-800">Program Level</Label>
-                    <p className="text-sm text-blue-900 capitalize">
-                      {applicationData.educationDetails?.programDetails?.programLevel || 
-                       applicationData.programSelections?.find(p => p.selected)?.programLevel}
-                    </p>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium text-blue-800">Program Name</Label>
-                    <p className="text-sm text-blue-900">
-                      {applicationData.educationDetails?.programDetails?.programName || 
-                       applicationData.programSelections?.find(p => p.selected)?.programName}
-                    </p>
-                  </div>
-                  {(applicationData.educationDetails?.programDetails?.mode || 
-                    applicationData.programSelections?.find(p => p.selected)?.mode) && (
-                    <div>
-                      <Label className="text-sm font-medium text-blue-800">Mode</Label>
-                      <p className="text-sm text-blue-900">
-                        {applicationData.educationDetails?.programDetails?.mode || 
-                         applicationData.programSelections?.find(p => p.selected)?.mode}
-                      </p>
-                    </div>
-                  )}
-                  {(applicationData.educationDetails?.programDetails?.specialization || 
-                    applicationData.programSelections?.find(p => p.selected)?.specialization) && (
-                    <div>
-                      <Label className="text-sm font-medium text-blue-800">Specialization</Label>
-                      <p className="text-sm text-blue-900">
-                        {applicationData.educationDetails?.programDetails?.specialization || 
-                         applicationData.programSelections?.find(p => p.selected)?.specialization}
-                      </p>
-                    </div>
-                  )}
-                </div>
-                
-                {/* Branch Preferences */}
-                {(() => {
-                  const selectedProgram = applicationData.programSelections?.find(p => p.selected);
-                  const educationBranches = applicationData.educationDetails?.programDetails?.branchPreferences;
-                  const selectionBranches = selectedProgram?.branchPreferences;
-                  
-                  const hasBranches = (educationBranches && educationBranches.length > 0) || 
-                                    (selectionBranches && selectionBranches.length > 0);
-                  
-                  if (!hasBranches) return null;
-                  
-                  return (
-                    <div className="mt-3">
-                      <Label className="text-sm font-medium text-blue-800">Branch Preferences</Label>
-                      <div className="flex flex-wrap gap-2 mt-1">
-                        {(educationBranches || selectionBranches)
-                          ?.sort((a:any, b:any) => a.priority - b.priority)
-                          .map((branch:any, index:any) => (
-                            <Badge key={index} variant="outline" className="text-xs bg-blue-100 text-blue-800">
-                              {branch.priority}. {branch.branch}
-                            </Badge>
-                          ))}
-                      </div>
-                    </div>
-                  );
-                })()}
-              </div>
-            )}
-
-            {/* Academic Qualifications Table */}
-            <div>
-              <h3 className="font-medium text-gray-900 mb-3">Academic Qualifications</h3>
-              {applicationData.educationDetails?.educationData && 
-               applicationData.educationDetails.educationData.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <table className="w-full border-collapse border border-gray-300">
-                    <thead>
-                      <tr className="bg-gray-50">
-                        {(() => {
-                          const selectedProgram = applicationData.programSelections?.find(p => p.selected);
-                          const isMBA = selectedProgram?.programName?.toLowerCase().includes('mba');
-                          
-                          return (
-                            <>
-                              {!isMBA && <th className="border border-gray-300 p-2 text-left text-sm font-medium">Sl.</th>}
-                              <th className="border border-gray-300 p-2 text-left text-sm font-medium">Examination</th>
-                              <th className="border border-gray-300 p-2 text-left text-sm font-medium">Passed/Failed</th>
-                              <th className="border border-gray-300 p-2 text-left text-sm font-medium">
-                                {isMBA ? 'Group/Subject' : 'Group/Trade'}
-                              </th>
-                              <th className="border border-gray-300 p-2 text-left text-sm font-medium">Period</th>
-                              <th className="border border-gray-300 p-2 text-left text-sm font-medium">Year of Pass</th>
-                              <th className="border border-gray-300 p-2 text-left text-sm font-medium">% of Marks</th>
-                              {isMBA && <th className="border border-gray-300 p-2 text-left text-sm font-medium">Board/University</th>}
-                              {!isMBA && <th className="border border-gray-300 p-2 text-left text-sm font-medium">No. of Chances</th>}
-                              {!isMBA && <th className="border border-gray-300 p-2 text-left text-sm font-medium">English</th>}
-                              {!isMBA && <th className="border border-gray-300 p-2 text-left text-sm font-medium">Physics</th>}
-                              {!isMBA && <th className="border border-gray-300 p-2 text-left text-sm font-medium">Chemistry</th>}
-                              {!isMBA && <th className="border border-gray-300 p-2 text-left text-sm font-medium">Maths</th>}
-                            </>
-                          );
-                        })()}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {applicationData.educationDetails.educationData.map((row:any, index:any) => {
-                        const selectedProgram = applicationData.programSelections?.find(p => p.selected);
-                        const isMBA = selectedProgram?.programName?.toLowerCase().includes('mba');
-                        
-                        return (
-                          <tr key={index} className="hover:bg-gray-50">
-                            {!isMBA && <td className="border border-gray-300 p-2 text-center font-medium">{index + 1}</td>}
-                            <td className="border border-gray-300 p-2 text-sm">{row.examination}</td>
-                            <td className="border border-gray-300 p-2 text-sm capitalize">{row.passedFailed}</td>
-                            <td className="border border-gray-300 p-2 text-sm">{row.groupTrade || row.groupSubject}</td>
-                            <td className="border border-gray-300 p-2 text-sm">{row.period}</td>
-                            <td className="border border-gray-300 p-2 text-sm">{row.yearOfPass}</td>
-                            <td className="border border-gray-300 p-2 text-sm">{row.percentageMarks}%</td>
-                            {isMBA && <td className="border border-gray-300 p-2 text-sm">{row.boardUniversity}</td>}
-                            {!isMBA && <td className="border border-gray-300 p-2 text-sm">{row.noOfChances}</td>}
-                            {!isMBA && <td className="border border-gray-300 p-2 text-sm">{row.english}</td>}
-                            {!isMBA && <td className="border border-gray-300 p-2 text-sm">{row.physics}</td>}
-                            {!isMBA && <td className="border border-gray-300 p-2 text-sm">{row.chemistry}</td>}
-                            {!isMBA && <td className="border border-gray-300 p-2 text-sm">{row.maths}</td>}
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <div className="p-4 bg-gray-50 rounded-lg border">
-                  <p className="text-sm text-gray-600 text-center">
-                    {applicationData.educationDetails ? 
-                      'Academic qualification data is being processed or not yet available.' :
-                      'Academic qualifications will be displayed once you complete your education details.'
-                    }
+          <CardContent className="space-y-3 sm:space-y-4 px-3 sm:px-4 pb-4">
+            {applicationData.educationDetails ? (
+              <>
+                {/* Header Info */}
+                <div className="bg-gradient-to-r from-blue-50 to-blue-25 p-3 border rounded-lg">
+                  <h3 className="text-xs sm:text-sm font-semibold text-gray-800 mb-1 uppercase tracking-wide">Education Qualifications</h3>
+                  <p className="text-xs text-gray-600">
+                    Academic qualifications for {applicationData.educationDetails?.programDetails?.programName || 'this program'} admission.
                   </p>
                 </div>
-              )}
-            </div>
 
-            {/* Subject-wise Scores Table */}
-            {applicationData.educationDetails?.subjectScores && 
-             applicationData.educationDetails.subjectScores.length > 0 && (
-              <div>
-                <h3 className="font-medium text-gray-900 mb-3">Subject-wise Scores</h3>
-                <div className="overflow-x-auto">
-                  <table className="w-full border-collapse border border-gray-300">
-                    <thead>
-                      <tr className="bg-gray-50">
-                        <th className="border border-gray-300 p-2 text-left text-sm font-medium">Examination</th>
-                        <th className="border border-gray-300 p-2 text-left text-sm font-medium">Physics (%)</th>
-                        <th className="border border-gray-300 p-2 text-left text-sm font-medium">Chemistry (%)</th>
-                        <th className="border border-gray-300 p-2 text-left text-sm font-medium">Maths (%)</th>
-                        <th className="border border-gray-300 p-2 text-left text-sm font-medium">Total</th>
-                        <th className="border border-gray-300 p-2 text-left text-sm font-medium">Remarks</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {applicationData.educationDetails.subjectScores.map((row:any, index: number) => (
-                        <tr key={index} className="hover:bg-gray-50">
-                          <td className="border border-gray-300 p-2 text-sm">{row.examination}</td>
-                          <td className="border border-gray-300 p-2 text-sm">{row.physics}%</td>
-                          <td className="border border-gray-300 p-2 text-sm">{row.chemistry}%</td>
-                          <td className="border border-gray-300 p-2 text-sm">{row.maths}%</td>
-                          <td className="border border-gray-300 p-2 text-sm">{row.total}</td>
-                          <td className="border border-gray-300 p-2 text-sm">{row.remarks}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                {/* Education Cards */}
+                <div className="space-y-3">
+                  {applicationData.educationDetails?.educationData?.map((education:any, index:number) => (
+                    <Card key={education._id || index} className={`transition-all duration-200 ${
+                      education.examination === 'SSLC/THSLC/CBSE' || education.examination === '+2/VHSE' || education.examination === 'Degree'
+                        ? 'ring-2 ring-red-100 border-red-200 bg-red-50/30'
+                        : 'border-gray-200'
+                    }`}>
+                      <CardHeader className="pb-2 px-3 pt-3 sm:px-4 sm:pt-4">
+                        <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 gap-2">
+                          <CardTitle className="text-xs sm:text-sm font-semibold flex flex-wrap items-center gap-2">
+                            <span className="bg-blue-100 text-blue-900 px-2 py-1 rounded-full text-xs font-medium flex-shrink-0">
+                              {index + 1}
+                            </span>
+                            <span className="break-words text-xs sm:text-sm">{education.examination}</span>
+                            {(education.examination === 'SSLC/THSLC/CBSE' || education.examination === '+2/VHSE' || education.examination === 'Degree') && (
+                              <Badge variant="destructive" className="text-xs flex-shrink-0 px-1.5 py-0.5">
+                                Required
+                              </Badge>
+                            )}
+                          </CardTitle>
+
+                          {/* Status Badge */}
+                          <div className="flex justify-start sm:justify-end">
+                            <Badge variant="default" className={`text-xs px-2 py-1 ${
+                              education.passedFailed === 'Passed'
+                                ? "bg-green-100 text-green-800 hover:bg-green-100"
+                                : "bg-red-100 text-red-800 hover:bg-red-100"
+                            }`}>
+                              {education.passedFailed === 'Passed' ? '✓' : '✗'} {education.passedFailed}
+                            </Badge>
+                          </div>
+                        </div>
+                      </CardHeader>
+
+                      <CardContent className="space-y-2 px-3 pb-3 sm:px-4 sm:pb-4">
+                        {/* Form Grid - Responsive */}
+                        <div className="grid gap-3 grid-cols-2 sm:grid-cols-2 lg:grid-cols-4">
+
+                          {/* Group/Subject - Not for SSLC */}
+                          {education.examination !== "SSLC/THSLC/CBSE" && (education.groupTrade || education.groupSubject) && (
+                            <div className="bg-gray-50 p-2 rounded">
+                              <Label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+                                {education.examination === "Degree" ? "Subject" : "Group"}
+                              </Label>
+                              <p className="text-xs sm:text-sm font-semibold text-gray-900 mt-1">{education.groupTrade || education.groupSubject}</p>
+                            </div>
+                          )}
+
+                          {/* Year of Pass */}
+                          {education.yearOfPass && (
+                            <div className="bg-gray-50 p-2 rounded">
+                              <Label className="text-xs font-medium text-gray-600 uppercase tracking-wide">Year</Label>
+                              <p className="text-xs sm:text-sm font-semibold text-gray-900 mt-1">{education.yearOfPass}</p>
+                            </div>
+                          )}
+
+                          {/* Percentage */}
+                          {education.percentageMarks && (
+                            <div className="bg-gray-50 p-2 rounded">
+                              <Label className="text-xs font-medium text-gray-600 uppercase tracking-wide">Percentage</Label>
+                              <p className="text-xs sm:text-sm font-semibold text-gray-900 mt-1">{education.percentageMarks}%</p>
+                            </div>
+                          )}
+
+                          {/* Registration Number for all programs */}
+                          <div className="bg-gray-50 p-2 rounded">
+                            <Label className="text-xs font-medium text-gray-600 uppercase tracking-wide">Reg. No.</Label>
+                            <p className="text-xs sm:text-sm font-semibold text-gray-900 mt-1 break-all">{education.registrationNumber || 'N/A'}</p>
+                          </div>
+
+                          {/* Board/University for MBA programs */}
+                          {education.boardUniversity && (
+                            <div className="bg-gray-50 p-2 rounded">
+                              <Label className="text-xs font-medium text-gray-600 uppercase tracking-wide">Board/University</Label>
+                              <p className="text-xs sm:text-sm font-semibold text-gray-900 mt-1 break-all">{education.boardUniversity}</p>
+                            </div>
+                          )}
+
+                          {/* Subject Marks for specific examinations */}
+                          {(education.english || education.physics || education.chemistry || education.maths) && (
+                            <div className="col-span-full">
+                              <Label className="text-xs font-medium text-gray-700">Subject Marks</Label>
+                              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 mt-2">
+                                {education.english && (
+                                  <div className="text-center p-2 bg-gray-50 rounded">
+                                    <Label className="text-xs text-gray-600">English</Label>
+                                    <p className="text-sm font-medium">{education.english}</p>
+                                  </div>
+                                )}
+                                {education.physics && (
+                                  <div className="text-center p-2 bg-gray-50 rounded">
+                                    <Label className="text-xs text-gray-600">Physics</Label>
+                                    <p className="text-sm font-medium">{education.physics}</p>
+                                  </div>
+                                )}
+                                {education.chemistry && (
+                                  <div className="text-center p-2 bg-gray-50 rounded">
+                                    <Label className="text-xs text-gray-600">Chemistry</Label>
+                                    <p className="text-sm font-medium">{education.chemistry}</p>
+                                  </div>
+                                )}
+                                {education.maths && (
+                                  <div className="text-center p-2 bg-gray-50 rounded">
+                                    <Label className="text-xs text-gray-600">Maths</Label>
+                                    <p className="text-sm font-medium">{education.maths}</p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Completion Status Indicator */}
+                        <div className="pt-2">
+                          <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 text-xs text-gray-500">
+                            <span className="font-medium">Completion Status:</span>
+                            <div className="flex flex-wrap items-center gap-3 sm:gap-2">
+                              {[
+                                { field: 'yearOfPass', label: 'Year', value: education.yearOfPass },
+                                { field: 'percentageMarks', label: '%', value: education.percentageMarks },
+                                { field: 'registrationNumber', label: 'Reg', value: education.registrationNumber }
+                              ].map(({ field, label, value }) => (
+                                <div key={field} className="flex items-center gap-1">
+                                  <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                                    value && value !== 'N/A' ? 'bg-green-500' : 'bg-gray-300'
+                                  }`} />
+                                  <span className={`text-xs ${value && value !== 'N/A' ? 'text-green-600' : 'text-gray-400'}`}>
+                                    {label}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )) || (
+                    <div className="text-center py-8 text-gray-500">
+                      <p>No education details available</p>
+                    </div>
+                  )}
                 </div>
-              </div>
-            )}
 
-            {/* Entrance Examinations */}
-            {applicationData.educationDetails?.entranceExams && (() => {
-              const exams = applicationData.educationDetails.entranceExams;
-              const selectedExams = Object.entries(exams).filter(([, exam]:any) => exam.selected);
-              
-              if (selectedExams.length === 0) return null;
-              
-              return (
-                <div>
-                  <h3 className="font-medium text-gray-900 mb-3">Entrance Examinations</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {selectedExams.map(([examName, exam]:any) => (
-                      <div key={examName} className="p-3 bg-blue-50 rounded-md border border-blue-200">
-                        <p className="font-medium text-sm text-blue-900">{examName.toUpperCase()}</p>
-                        <p className="text-sm text-blue-700">Score: {exam.score || 'Not provided'}</p>
+                {/* Entrance Exams Section - Only for MBA programs */}
+                {applicationData.educationDetails?.entranceExams &&
+                 applicationData.educationDetails?.programDetails?.programLevel?.toLowerCase() === 'mba' && (
+                  <Card className="border-purple-200 bg-purple-50/30">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm font-semibold text-purple-800">
+                        Entrance Examination Details
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                        {/* KMAT */}
+                        <div className="space-y-2">
+                          <div className="flex items-center space-x-2">
+                            <div className={`w-3 h-3 rounded-full ${
+                              applicationData.educationDetails.entranceExams.kmat?.selected ? 'bg-purple-600' : 'bg-gray-300'
+                            }`} />
+                            <Label className="text-sm font-medium text-purple-800">KMAT</Label>
+                          </div>
+                          {applicationData.educationDetails.entranceExams.kmat?.selected && applicationData.educationDetails.entranceExams.kmat?.score && (
+                            <div className="ml-5">
+                              <Label className="text-xs text-gray-600">Score</Label>
+                              <p className="text-sm font-medium">{applicationData.educationDetails.entranceExams.kmat.score}</p>
+                            </div>
+                          )}
+                          {!applicationData.educationDetails.entranceExams.kmat?.selected && (
+                            <p className="text-xs text-gray-500 ml-5">Not attempted</p>
+                          )}
+                        </div>
+
+                        {/* CMAT */}
+                        <div className="space-y-2">
+                          <div className="flex items-center space-x-2">
+                            <div className={`w-3 h-3 rounded-full ${
+                              applicationData.educationDetails.entranceExams.cmat?.selected ? 'bg-purple-600' : 'bg-gray-300'
+                            }`} />
+                            <Label className="text-sm font-medium text-purple-800">CMAT</Label>
+                          </div>
+                          {applicationData.educationDetails.entranceExams.cmat?.selected && applicationData.educationDetails.entranceExams.cmat?.score && (
+                            <div className="ml-5">
+                              <Label className="text-xs text-gray-600">Score</Label>
+                              <p className="text-sm font-medium">{applicationData.educationDetails.entranceExams.cmat.score}</p>
+                            </div>
+                          )}
+                          {!applicationData.educationDetails.entranceExams.cmat?.selected && (
+                            <p className="text-xs text-gray-500 ml-5">Not attempted</p>
+                          )}
+                        </div>
+
+                        {/* CAT */}
+                        <div className="space-y-2">
+                          <div className="flex items-center space-x-2">
+                            <div className={`w-3 h-3 rounded-full ${
+                              applicationData.educationDetails.entranceExams.cat?.selected ? 'bg-purple-600' : 'bg-gray-300'
+                            }`} />
+                            <Label className="text-sm font-medium text-purple-800">CAT</Label>
+                          </div>
+                          {applicationData.educationDetails.entranceExams.cat?.selected && applicationData.educationDetails.entranceExams.cat?.score && (
+                            <div className="ml-5">
+                              <Label className="text-xs text-gray-600">Score</Label>
+                              <p className="text-sm font-medium">{applicationData.educationDetails.entranceExams.cat.score}</p>
+                            </div>
+                          )}
+                          {!applicationData.educationDetails.entranceExams.cat?.selected && (
+                            <p className="text-xs text-gray-500 ml-5">Not attempted</p>
+                          )}
+                        </div>
                       </div>
-                    ))}
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Additional Education Information */}
+                {applicationData.educationDetails?.achievements && (
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700">Achievements/Work Experience</Label>
+                    <p className="text-sm text-gray-900 mt-1 p-3 bg-gray-50 rounded-lg">{applicationData.educationDetails.achievements}</p>
                   </div>
-                </div>
-              );
-            })()}
+                )}
 
-            {/* Additional Education Information */}
-            {applicationData.educationDetails?.achievements && (
-              <div>
-                <Label className="text-sm font-medium text-gray-700">Achievements/Work Experience</Label>
-                <div className="mt-2 p-3 bg-gray-50 rounded-lg border">
-                  <p className="text-sm text-gray-900">{applicationData.educationDetails.achievements}</p>
-                </div>
-              </div>
-            )}
-
-            {applicationData.educationDetails?.collegeName && (
-              <div>
-                <Label className="text-sm font-medium text-gray-700">College Name (UG)</Label>
-                <p className="text-lg font-semibold mt-1">{applicationData.educationDetails.collegeName}</p>
-              </div>
-            )}
-
-            {/* If no education details at all */}
-            {!applicationData.educationDetails && (
-              <div className="p-4 bg-gray-50 rounded-lg border">
-                <p className="text-center text-gray-600">
-                  No education details available yet.
-                  <br />
-                  <span className="text-sm">Please complete your education details in the profile section.</span>
-                </p>
+                {applicationData.educationDetails?.collegeName && (
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700">College Name (UG)</Label>
+                    <p className="text-sm text-gray-900 mt-1">{applicationData.educationDetails.collegeName}</p>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <BookOpen className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                <p>No education details available</p>
               </div>
             )}
           </CardContent>

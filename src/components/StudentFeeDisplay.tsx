@@ -302,9 +302,9 @@ export const StudentFeeDisplay: React.FC = () => {
                 open={expandedSemesters[semester.semester]}
                 onOpenChange={() => toggleSemesterExpansion(semester.semester)}
               >
-                <Card className="border border-gray-200">
+                <Card className="border border-gray-200 py-3">
                   <CollapsibleTrigger asChild>
-                    <CardHeader className="cursor-pointer hover:bg-gray-50 py-3">
+                    <CardHeader className="cursor-pointer hover:bg-gray-50">
                       <CardTitle className="flex items-center justify-between text-lg">
                         <div className="flex items-center space-x-2">
                           <span>{semester.semesterName}</span>
@@ -411,29 +411,21 @@ export const StudentFeeDisplay: React.FC = () => {
         </div>
 
         {/* Summary */}
-        <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+        <div className="bg-green-50 p-2 rounded-lg border border-green-200">
           <h3 className="font-medium text-green-900 mb-2">Fee Summary</h3>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <div>
-              <Label className="text-sm font-medium text-green-800">Number of Semesters</Label>
-              <p className="text-lg font-semibold text-green-900">
+              <Label className="text-xs font-medium text-green-800">Number of Semesters</Label>
+              <p className="text-sm font-semibold text-green-900">
                 {feeAssignment.feeStructureSnapshot.semesters.length}
               </p>
             </div>
             <div>
-              <Label className="text-sm font-medium text-green-800">Total Fee Amount</Label>
-              <p className="text-lg font-semibold text-green-900">
+              <Label className="text-xs font-medium text-green-800">Total Fee Amount</Label>
+              <p className="text-sm font-semibold text-green-900">
                 ₹{calculateTotalPayable().toLocaleString()}
               </p>
             </div>
-            {feeAssignment.feeStructureSnapshot.hostelFee > 0 && (
-              <div>
-                <Label className="text-sm font-medium text-green-800">Hostel Fee</Label>
-                <p className="text-lg font-semibold text-green-900">
-                  ₹{feeAssignment.feeStructureSnapshot.hostelFee.toLocaleString()}
-                </p>
-              </div>
-            )}
           </div>
         </div>
       </CardContent>

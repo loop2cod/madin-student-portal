@@ -212,11 +212,6 @@ export const PaymentHistoryView: React.FC = () => {
       );
 
       if (response.success) {
-        console.log('Payment history API response:', response.data);
-        if (response.data.payments && response.data.payments.length > 0) {
-          console.log('First payment object:', response.data.payments[0]);
-          console.log('First payment keys:', Object.keys(response.data.payments[0]));
-        }
         setPaymentData(response.data);
       } else {
         setError(response.message || 'Failed to fetch payment history');
@@ -935,9 +930,6 @@ export const PaymentHistoryView: React.FC = () => {
                                   <Button
                                     variant="outline"
                                     onClick={() => {
-                                      console.log('Selected payment object:', selectedPayment);
-                                      console.log('Available keys:', selectedPayment ? Object.keys(selectedPayment) : 'none');
-                                      
                                       const paymentId = getPaymentId(selectedPayment);
                                       
                                       if (paymentId) {
@@ -961,12 +953,8 @@ export const PaymentHistoryView: React.FC = () => {
                             variant="ghost" 
                             size="sm"
                             onClick={() => {
-                              console.log('Payment object:', payment);
-                              console.log('Available keys:', Object.keys(payment));
-                              
                               const paymentId = getPaymentId(payment);
-                              console.log('Extracted payment ID:', paymentId);
-                              
+
                               if (paymentId) {
                                 downloadReceipt(paymentId);
                               } else {

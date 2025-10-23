@@ -322,9 +322,9 @@ const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
     }
 
     return (
-      <div className="space-y-6">
+      <div className="space-y-3">
         {/* Header Info */}
-        <div className="bg-gradient-to-r from-secondary/10 to-secondary/5 p-4 border rounded-lg">
+        <div className="bg-gradient-to-r from-blue-50 to-blue-25 p-3 border rounded-lg">
           <h3 className="text-sm md:text-base font-semibold text-gray-800 mb-2">
             Education Qualifications ({selectedProgram.programLevel === 'mba' ? 'MBA' : 'Diploma'})
           </h3>
@@ -772,13 +772,13 @@ const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {renderEducationForm()}
 
       {/* Error Summary */}
       {Object.keys(errors).length > 0 && (
         <Card className="border-red-200 bg-red-50">
-          <CardContent className="pt-6">
+          <CardContent className="pt-4">
             <div className="space-y-1">
               {Object.values(errors).map((error, index) => (
                 <p key={index} className="text-sm text-red-600">{error}</p>
@@ -789,13 +789,13 @@ const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
       )}
 
       {/* Save Button */}
-      <div className="flex justify-end pt-4">
+      <div className="flex justify-end pt-3">
         <Button
           onClick={handleSubmit}
           disabled={saving || isLoading}
           className="bg-[#001c67] hover:bg-[#001c67]/90 text-white"
         >
-          <Save className="w-4 h-4 mr-2" />
+          <Save className="w-3 h-3 mr-2" />
           {saving ? 'Saving...' : 'Save Education Details'}
         </Button>
       </div>

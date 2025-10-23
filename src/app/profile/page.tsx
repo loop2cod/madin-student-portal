@@ -4,7 +4,9 @@ import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   User, 
   Edit, 
@@ -24,10 +26,13 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { get, patch } from '@/utilities/AxiosInterceptor';
 import { useToast } from '@/components/ui/use-toast';
+import { lazy, Suspense } from 'react';
 import { PersonalDetailsForm } from '@/components/profile/PersonalDetailsForm';
-import { AddressAndFamilyForm } from '@/components/profile/AddressAndFamilyForm';
-import { ProgramSelectionForm } from '@/components/profile/ProgramSelectionForm';
-import EducationDetailsForm from '@/components/profile/EducationDetailsForm';
+
+// Lazy load the other form components for better performance
+const AddressAndFamilyForm = lazy(() => import('@/components/profile/AddressAndFamilyForm').then(module => ({ default: module.AddressAndFamilyForm })));
+const ProgramSelectionForm = lazy(() => import('@/components/profile/ProgramSelectionForm').then(module => ({ default: module.ProgramSelectionForm })));
+const EducationDetailsForm = lazy(() => import('@/components/profile/EducationDetailsForm'));
 import { DashboardLayout } from '@/components/DashboardLayout';
 
 interface StudentApplication {
@@ -40,6 +45,7 @@ interface StudentApplication {
     gender: string;
     religion: string;
     email: string;
+    profilePicture?: string;
   };
   addressFamilyDetails: {
     address: {
@@ -98,7 +104,7 @@ export default function ProfilePage() {
     try {
       setLoading(true);
       const response = await get<{ success: boolean; data: StudentApplication }>('/api/v1/auth/student/profile');
-      
+
       if (response.success) {
         setApplication(response.data);
       } else {
@@ -257,23 +263,26 @@ export default function ProfilePage() {
   return (
     <DashboardLayout 
       title="My Profile"
-      breadcrumbs={[
-        { title: "Dashboard", href: "/dashboard" },
-        { title: "My Profile" }
-      ]}
     >
-
-      <div className="space-y-6">
+      <div className="space-y-4 p-2">
         {/* Profile Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-6 text-white mb-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold mb-2">{application.personalDetails.fullName}</h1>
-              <p className="text-blue-100">
-                {application.admissionNumber} | {application.department} | {application.applicationId}
-              </p>
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-4 sm:p-6 text-white">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center space-x-3 sm:space-x-4">
+              <Avatar className="w-12 h-12 sm:w-16 sm:h-16 border-4 border-white/20">
+                <AvatarImage src={application.personalDetails?.profilePicture} alt="Profile Picture" />
+                <AvatarFallback className="text-white bg-white/20 text-lg sm:text-xl">
+                  {application.personalDetails?.fullName ? application.personalDetails.fullName.charAt(0).toUpperCase() : 'U'}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <h1 className="text-xl sm:text-2xl font-bold mb-1 sm:mb-2">{application.personalDetails.fullName}</h1>
+                <p className="text-blue-100 text-sm sm:text-base">
+                  {application.admissionNumber} | {application.department} | {application.applicationId}
+                </p>
+              </div>
             </div>
-            <Badge variant="outline" className="bg-white/20 border-white/30 text-white">
+            <Badge variant="outline" className="bg-white/20 border-white/30 text-white self-start sm:self-auto">
               {application.status.charAt(0).toUpperCase() + application.status.slice(1)}
             </Badge>
           </div>
@@ -283,62 +292,120 @@ export default function ProfilePage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
-              <Edit className="w-5 h-5" />
+              <Edit className="w-4 h-4" />
               <span>Edit Profile Information</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="personal" className="flex items-center space-x-2">
-                  <User className="w-4 h-4" />
-                  <span>Personal Details</span>
+              {/* Mobile Vertical Tabs */}
+              <div className="sm:hidden space-y-2 mb-4">
+                <div className="grid grid-cols-1 gap-2">
+                  <button
+                    onClick={() => setActiveTab('personal')}
+                    className={`flex items-center space-x-2 p-3 rounded-lg border transition-colors ${
+                      activeTab === 'personal'
+                        ? 'bg-blue-50 border-blue-200 text-blue-700'
+                        : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    <User className="w-4 h-4" />
+                    <span className="text-sm font-medium">Personal Details</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('address')}
+                    className={`flex items-center space-x-2 p-3 rounded-lg border transition-colors ${
+                      activeTab === 'address'
+                        ? 'bg-blue-50 border-blue-200 text-blue-700'
+                        : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    <MapPin className="w-4 h-4" />
+                    <span className="text-sm font-medium">Address & Family</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('education')}
+                    className={`flex items-center space-x-2 p-3 rounded-lg border transition-colors ${
+                      activeTab === 'education'
+                        ? 'bg-blue-50 border-blue-200 text-blue-700'
+                        : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    <BookOpen className="w-4 h-4" />
+                    <span className="text-sm font-medium">Education Details</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('program')}
+                    className={`flex items-center space-x-2 p-3 rounded-lg border transition-colors ${
+                      activeTab === 'program'
+                        ? 'bg-blue-50 border-blue-200 text-blue-700'
+                        : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    <GraduationCap className="w-4 h-4" />
+                    <span className="text-sm font-medium">Program Selection</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Desktop Tabs */}
+              <TabsList className="hidden sm:grid w-full grid-cols-4">
+                <TabsTrigger value="personal" className="flex items-center space-x-1">
+                  <User className="w-3 h-3" />
+                  <span className="text-xs sm:text-sm">Personal Details</span>
                 </TabsTrigger>
-                <TabsTrigger value="address" className="flex items-center space-x-2">
-                  <MapPin className="w-4 h-4" />
-                  <span>Address & Family</span>
+                <TabsTrigger value="address" className="flex items-center space-x-1">
+                  <MapPin className="w-3 h-3" />
+                  <span className="text-xs sm:text-sm">Address & Family</span>
                 </TabsTrigger>
-                <TabsTrigger value="education" className="flex items-center space-x-2">
-                  <BookOpen className="w-4 h-4" />
-                  <span>Education Details</span>
+                <TabsTrigger value="education" className="flex items-center space-x-1">
+                  <BookOpen className="w-3 h-3" />
+                  <span className="text-xs sm:text-sm">Education Details</span>
                 </TabsTrigger>
-                <TabsTrigger value="program" className="flex items-center space-x-2">
-                  <GraduationCap className="w-4 h-4" />
-                  <span>Program Selection</span>
+                <TabsTrigger value="program" className="flex items-center space-x-1">
+                  <GraduationCap className="w-3 h-3" />
+                  <span className="text-xs sm:text-sm">Program Selection</span>
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="personal" className="mt-6">
+              <TabsContent value="personal" className="mt-4">
                 <PersonalDetailsForm
                   applicationData={application}
                   onSave={handleSavePersonalDetails}
                   saving={saving}
+                  onProfilePictureUpdate={fetchApplicationData}
                 />
               </TabsContent>
 
-              <TabsContent value="address" className="mt-6">
-                <AddressAndFamilyForm
-                  applicationData={application}
-                  onSave={handleSaveAddressAndFamily}
-                  saving={saving}
-                />
-              </TabsContent>
+               <TabsContent value="address" className="mt-4">
+                 <Suspense fallback={<div className="flex items-center justify-center p-6"><div className="animate-spin w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full"></div></div>}>
+                   <AddressAndFamilyForm
+                     applicationData={application}
+                     onSave={handleSaveAddressAndFamily}
+                     saving={saving}
+                   />
+                 </Suspense>
+               </TabsContent>
 
-              <TabsContent value="education" className="mt-6">
-                <EducationDetailsForm
-                  applicationData={application}
-                  onSave={handleSaveEducationDetails}
-                  saving={saving}
-                />
-              </TabsContent>
+               <TabsContent value="education" className="mt-4">
+                 <Suspense fallback={<div className="flex items-center justify-center p-6"><div className="animate-spin w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full"></div></div>}>
+                   <EducationDetailsForm
+                     applicationData={application}
+                     onSave={handleSaveEducationDetails}
+                     saving={saving}
+                   />
+                 </Suspense>
+               </TabsContent>
 
-              <TabsContent value="program" className="mt-6">
-                <ProgramSelectionForm
-                  applicationData={application}
-                  onSave={handleSaveProgramSelection}
-                  saving={saving}
-                />
-              </TabsContent>
+               <TabsContent value="program" className="mt-4">
+                 <Suspense fallback={<div className="flex items-center justify-center p-6"><div className="animate-spin w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full"></div></div>}>
+                   <ProgramSelectionForm
+                     applicationData={application}
+                     onSave={handleSaveProgramSelection}
+                     saving={saving}
+                   />
+                 </Suspense>
+               </TabsContent>
             </Tabs>
           </CardContent>
         </Card>

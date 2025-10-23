@@ -185,10 +185,8 @@ export const StudentFeePayment: React.FC = () => {
 
   const fetchFeePaymentStatus = async () => {
     try {
-      console.log('Fetching fee payment status...');
       const response = await get<any>('/api/v1/student-payments/my-fee-payment-status');
       if (response.success) {
-        console.log('Fee payment status loaded:', response.data);
         setFeePaymentStatus(response.data);
       }
     } catch (error) {
@@ -262,21 +260,11 @@ export const StudentFeePayment: React.FC = () => {
   };
 
   const calculatePaymentAmount = () => {
-    console.log('calculatePaymentAmount called:', {
-      paymentType,
-      selectedSemester,
-      selectedFees,
-      feeAssignmentExists: !!feeAssignment,
-      feePaymentStatusExists: !!feePaymentStatus
-    });
-    
     if (!feeAssignment) return;
 
     let amount = 0;
     let breakdown: FeeBreakdown[] = [];
     const semesterStatus = getPaymentStatusForSemester(selectedSemester);
-    
-    console.log('semesterStatus for calculation:', semesterStatus);
 
     if (paymentType === 'full_payment') {
       // Calculate only unpaid portion for full payment
@@ -333,18 +321,10 @@ export const StudentFeePayment: React.FC = () => {
         }
       }
     } else if (paymentType === 'partial_payment') {
-      console.log('Partial payment calculation:', {
-        semesterStatus,
-        selectedFees,
-        selectedSemester
-      });
-      
       if (semesterStatus) {
-        console.log('Using semesterStatus for calculation');
         Object.entries(selectedFees).forEach(([feeType, isSelected]) => {
           if (isSelected) {
             const remainingBalance = semesterStatus.remainingBalance[feeType] || 0;
-            console.log(`${feeType}: selected=${isSelected}, remainingBalance=${remainingBalance}`);
             if (remainingBalance > 0) {
               amount += remainingBalance;
               breakdown.push({ feeType, amount: remainingBalance });
@@ -352,7 +332,6 @@ export const StudentFeePayment: React.FC = () => {
           }
         });
       } else {
-        console.log('Using fallback calculation - semesterStatus not available');
         // Fallback to original calculation
         const semester = feeAssignment.feeStructureSnapshot.semesters.find(s => s.semester === selectedSemester);
         if (semester) {
@@ -360,7 +339,6 @@ export const StudentFeePayment: React.FC = () => {
           Object.entries(selectedFees).forEach(([feeType, isSelected]) => {
             if (isSelected && effectiveFees[feeType as keyof typeof effectiveFees]) {
               const feeAmount = effectiveFees[feeType as keyof typeof effectiveFees];
-              console.log(`${feeType}: selected=${isSelected}, fullAmount=${feeAmount}`);
               amount += feeAmount;
               breakdown.push({ feeType, amount: feeAmount });
             }
@@ -374,14 +352,6 @@ export const StudentFeePayment: React.FC = () => {
 
     const convFee = Math.round(amount * 0.03); // 3% convenience fee
     const total = amount + convFee;
-
-    console.log('Final calculation result:', {
-      paymentType,
-      baseAmount: amount,
-      convenienceFee: convFee,
-      totalAmount: total,
-      breakdown
-    });
 
     setPaymentAmount(amount);
     setConvenienceFee(convFee);

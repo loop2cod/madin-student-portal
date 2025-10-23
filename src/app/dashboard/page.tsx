@@ -68,52 +68,54 @@ export default function StudentDashboard() {
 
   return (
     <DashboardLayout title="Dashboard">
-      <div className="space-y-6">
-        {/* Welcome Section */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-6 text-white">
-          <h1 className="text-2xl font-bold mb-2">Welcome back, {student.name}!</h1>
-          <p className="text-blue-100">
-            Admission Number: {student.admissionNumber} | Department: {student.department}
-          </p>
-        </div>
+      <div className="space-y-6 p-2">
 
         {/* Student Info Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <User className="w-5 h-5" />
+        <Card className="overflow-hidden">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center space-x-2 text-lg">
+              <User className="w-4 h-4" />
               <span>Student Information</span>
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div>
-                <label className="text-sm font-medium text-gray-500">Name</label>
-                <p className="text-lg font-semibold">{student.name}</p>
+          <CardContent className="pt-0">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Primary Info */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                  <span className="text-xs md:text-sm font-medium text-gray-600">Name</span>
+                  <span className="text-xs md:text-sm font-semibold text-gray-900">{student.name}</span>
+                </div>
+                <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                  <span className="text-xs md:text-sm font-medium text-gray-600">Admission No.</span>
+                  <span className="text-xs md:text-sm font-mono font-semibold text-blue-600">{student.admissionNumber}</span>
+                </div>
+                <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                  <span className="text-xs md:text-sm font-medium text-gray-600">Application ID</span>
+                  <span className="text-xs md:text-sm font-mono font-semibold text-gray-900">{student.applicationId}</span>
+                </div>
               </div>
-              <div>
-                <label className="text-sm font-medium text-gray-500">Admission Number</label>
-                <p className="text-lg font-semibold">{student.admissionNumber}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-500">Application ID</label>
-                <p className="text-lg font-semibold">{student.applicationId}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-500">Email</label>
-                <p className="text-lg font-semibold">{student.email}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-500">Department</label>
-                <Badge variant="secondary" className="text-sm">
-                  {student.department}
-                </Badge>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-500">Status</label>
-                <Badge variant="default" className="text-sm bg-green-100 text-green-800">
-                  Active Student
-                </Badge>
+
+              {/* Secondary Info */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                  <span className="text-xs md:text-sm font-medium text-gray-600">Email</span>
+                  <span className="text-xs md:text-sm  font-semibold text-gray-900" title={student.email}>
+                    {student.email}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                  <span className="text-xs md:text-sm font-medium text-gray-600">Department</span>
+                  <Badge variant="secondary" className="text-xs px-2 py-1">
+                    {student.department}
+                  </Badge>
+                </div>
+                <div className="flex items-center justify-between py-2">
+                  <span className="text-xs md:text-sm font-medium text-gray-600">Status</span>
+                  <Badge variant="default" className="text-xs px-2 py-1 bg-green-100 text-green-800 hover:bg-green-100">
+                    Active
+                  </Badge>
+                </div>
               </div>
             </div>
           </CardContent>
@@ -130,7 +132,7 @@ export default function StudentDashboard() {
                   </div>
                   <div>
                     <h3 className="font-semibold">Application Status</h3>
-                    <p className="text-sm text-gray-500">View your application</p>
+                    <p className="text-xs md:text-sm text-gray-500">View your application</p>
                   </div>
                 </div>
               </CardContent>
@@ -146,7 +148,7 @@ export default function StudentDashboard() {
                   </div>
                   <div>
                     <h3 className="font-semibold">Certificates</h3>
-                    <p className="text-sm text-gray-500">Request certificates</p>
+                    <p className="text-xs md:text-sm text-gray-500">Request certificates</p>
                   </div>
                 </div>
               </CardContent>
@@ -162,7 +164,7 @@ export default function StudentDashboard() {
                   </div>
                   <div>
                     <h3 className="font-semibold">My Profile</h3>
-                    <p className="text-sm text-gray-500">Update information</p>
+                    <p className="text-xs md:text-sm text-gray-500">Update information</p>
                   </div>
                 </div>
               </CardContent>
@@ -178,7 +180,7 @@ export default function StudentDashboard() {
                   </div>
                   <div>
                     <h3 className="font-semibold">Help & Support</h3>
-                    <p className="text-sm text-gray-500">Get assistance</p>
+                    <p className="text-xs md:text-sm text-gray-500">Get assistance</p>
                   </div>
                 </div>
               </CardContent>
@@ -200,14 +202,14 @@ export default function StudentDashboard() {
                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                 <div>
                   <p className="font-medium">Account Created</p>
-                  <p className="text-sm text-gray-500">Your student account was successfully created</p>
+                  <p className="text-xs md:text-sm text-gray-500">Your student account was successfully created</p>
                 </div>
               </div>
               <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
                 <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                 <div>
                   <p className="font-medium">Welcome to {student.department}</p>
-                  <p className="text-sm text-gray-500">You have been assigned to the {student.department} department</p>
+                  <p className="text-xs md:text-sm text-gray-500">You have been assigned to the {student.department} department</p>
                 </div>
               </div>
             </div>
