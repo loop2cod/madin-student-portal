@@ -27,7 +27,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { PersonalDetailsForm } from '@/components/profile/PersonalDetailsForm';
 import { AddressAndFamilyForm } from '@/components/profile/AddressAndFamilyForm';
 import { ProgramSelectionForm } from '@/components/profile/ProgramSelectionForm';
-import { EducationDetailsForm } from '@/components/profile/EducationDetailsForm';
+import EducationDetailsForm from '@/components/profile/EducationDetailsForm';
 import { DashboardLayout } from '@/components/DashboardLayout';
 
 interface StudentApplication {

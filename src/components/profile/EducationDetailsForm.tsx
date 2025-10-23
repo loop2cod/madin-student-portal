@@ -2,583 +2,805 @@
 
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Textarea } from '@/components/ui/textarea';
-import { 
-  Save, 
-  GraduationCap, 
-  Book, 
-  Award, 
-  Plus, 
-  Trash2,
-  Info,
-  School
-} from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Save, GraduationCap, Plus, X } from 'lucide-react';
+import { toast } from '@/components/ui/use-toast';
 
 interface EducationDetailsFormProps {
   applicationData: any;
-  onSave: (educationDetails: any) => void;
+  onSave: (data: any) => void;
   saving: boolean;
 }
 
-interface EducationEntry {
-  examination: string;
-  passedFailed: string;
-  groupSubject: string;
-  groupTrade: string;
-  period: string;
-  yearOfPass: string;
-  percentageMarks: string;
-  boardUniversity: string;
-  noOfChances: string;
-  english: string;
-  physics: string;
-  chemistry: string;
-  maths: string;
-}
+const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
+  applicationData,
+  onSave,
+  saving
+}) => {
+  const [formData, setFormData] = useState<any>({});
+  const [programSelections, setProgramSelections] = useState<any[]>([]);
+  const [errors, setErrors] = useState<{[key: string]: string}>({});
+  const [isLoading, setIsLoading] = useState(false);
 
-interface SubjectScore {
-  examination: string;
-  physics: string;
-  chemistry: string;
-  maths: string;
-  total: string;
-  remarks: string;
-}
-
-export function EducationDetailsForm({ applicationData, onSave, saving }: EducationDetailsFormProps) {
-  const [educationData, setEducationData] = useState<EducationEntry[]>([]);
-  const [subjectScores, setSubjectScores] = useState<SubjectScore[]>([]);
-  const [achievements, setAchievements] = useState('');
-  const [collegeName, setCollegeName] = useState('');
-  const [entranceExams, setEntranceExams] = useState({
-    kmat: { selected: false, score: '' },
-    cmat: { selected: false, score: '' },
-    cat: { selected: false, score: '' }
-  });
-  const [hasChanges, setHasChanges] = useState(false);
-
-  const isDiploma = applicationData?.programSelections?.some((p: any) => p.programLevel === 'diploma');
-  const isMBA = applicationData?.programSelections?.some((p: any) => p.programLevel === 'mba');
+  // Get the selected program details
+  const selectedProgram = programSelections.find(p => p.selected) || programSelections[0];
 
   useEffect(() => {
-    // Initialize form with existing data if available
     if (applicationData?.educationDetails) {
-      const details = applicationData.educationDetails;
-      setEducationData(details.educationData || [getDefaultEducationEntry()]);
-      setSubjectScores(details.subjectScores || []);
-      setAchievements(details.achievements || '');
-      setCollegeName(details.collegeName || '');
-      setEntranceExams(details.entranceExams || {
-        kmat: { selected: false, score: '' },
-        cmat: { selected: false, score: '' },
-        cat: { selected: false, score: '' }
-      });
-    } else {
-      // Initialize with default values
-      setEducationData([getDefaultEducationEntry()]);
+      setFormData(applicationData.educationDetails);
+    }
+    if (applicationData?.programSelections) {
+      setProgramSelections(applicationData.programSelections);
     }
   }, [applicationData]);
 
-  function getDefaultEducationEntry(): EducationEntry {
-    return {
-      examination: '',
-      passedFailed: '',
-      groupSubject: '',
-      groupTrade: '',
-      period: '',
-      yearOfPass: '',
-      percentageMarks: '',
-      boardUniversity: '',
-      noOfChances: '',
-      english: '',
-      physics: '',
-      chemistry: '',
-      maths: ''
-    };
-  }
+  // Initialize form data based on program type and mode
+  useEffect(() => {
+    if (selectedProgram && !formData.educationData) {
+      initializeFormData();
+    }
+  }, [selectedProgram]);
 
-  function getDefaultSubjectScore(): SubjectScore {
-    return {
-      examination: '',
-      physics: '',
-      chemistry: '',
-      maths: '',
-      total: '',
-      remarks: ''
-    };
-  }
+  const initializeFormData = () => {
+    if (!selectedProgram) return;
 
-  const handleEducationDataChange = (index: number, field: keyof EducationEntry, value: string) => {
-    const updated = [...educationData];
-    updated[index] = { ...updated[index], [field]: value };
-    setEducationData(updated);
-    setHasChanges(true);
+    let initialData: any = { programDetails: selectedProgram };
+
+    if (selectedProgram.programLevel === 'mba') {
+      initialData = {
+        ...initialData,
+        educationData: [
+          {
+            examination: "SSLC/THSLC/CBSE",
+            passedFailed: "Passed",
+            groupSubject: "",
+            yearOfPass: "",
+            percentageMarks: "",
+            registrationNumber: "",
+            isCompulsory: true
+          },
+          {
+            examination: "+2/VHSE",
+            passedFailed: "Passed",
+            groupSubject: "",
+            yearOfPass: "",
+            percentageMarks: "",
+            registrationNumber: "",
+            isCompulsory: true
+          },
+          {
+            examination: "Degree",
+            passedFailed: "Passed",
+            groupSubject: "",
+            yearOfPass: "",
+            percentageMarks: "",
+            registrationNumber: "",
+            isCompulsory: true
+          }
+        ],
+        achievements: "",
+        collegeName: "",
+        entranceExams: {
+          kmat: { selected: false, score: "" },
+          cmat: { selected: false, score: "" },
+          cat: { selected: false, score: "" }
+        }
+      };
+    } else if (selectedProgram.programLevel === 'diploma') {
+      if (selectedProgram.mode === 'let' || selectedProgram.mode === 'LET') {
+        initialData = {
+          ...initialData,
+          educationData: [
+            {
+              examination: "SSLC/THSLC/CBSE",
+              passedFailed: "Passed",
+              groupTrade: "",
+              yearOfPass: "",
+              percentageMarks: "",
+              registrationNumber: "",
+              noOfChances: "",
+              english: "",
+              physics: "",
+              chemistry: "",
+              maths: "",
+              isCompulsory: true
+            },
+            {
+              examination: "+2/VHSE",
+              passedFailed: "",
+              groupTrade: "",
+              yearOfPass: "",
+              percentageMarks: "",
+              registrationNumber: "",
+              noOfChances: "",
+              english: "",
+              physics: "",
+              chemistry: "",
+              maths: "",
+              isCompulsory: false
+            },
+            {
+              examination: "ITI",
+              passedFailed: "",
+              groupTrade: "",
+              yearOfPass: "",
+              percentageMarks: "",
+              registrationNumber: "",
+              noOfChances: "",
+              english: "",
+              physics: "",
+              chemistry: "",
+              maths: "",
+              isCompulsory: false
+            }
+          ],
+          subjectScores: [
+            { examination: "+2/VHSE", physics: "", chemistry: "", maths: "", total: "", remarks: "" }
+          ]
+        };
+      } else {
+        // Regular and Part-time
+        initialData = {
+          ...initialData,
+          educationData: [
+            {
+              examination: "SSLC/THSLC/CBSE",
+              passedFailed: "Passed",
+              groupTrade: "",
+              yearOfPass: "",
+              percentageMarks: "",
+              registrationNumber: "",
+              isCompulsory: true
+            }
+          ]
+        };
+      }
+    }
+
+    setFormData(initialData);
   };
 
-  const addEducationEntry = () => {
-    setEducationData([...educationData, getDefaultEducationEntry()]);
-    setHasChanges(true);
+  const validateForm = () => {
+    const newErrors: {[key: string]: string} = {};
+
+    if (!formData.educationData || formData.educationData.length === 0) {
+      newErrors.education = 'Education details are required';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
-  const removeEducationEntry = (index: number) => {
-    if (educationData.length > 1) {
-      const updated = educationData.filter((_, i) => i !== index);
-      setEducationData(updated);
-      setHasChanges(true);
+  const handleSubmit = () => {
+    if (validateForm()) {
+      onSave(formData);
     }
   };
 
-  const handleSubjectScoreChange = (index: number, field: keyof SubjectScore, value: string) => {
-    const updated = [...subjectScores];
-    updated[index] = { ...updated[index], [field]: value };
-    setSubjectScores(updated);
-    setHasChanges(true);
+  // Available additional examinations
+  const getAvailableExaminations = () => {
+    if (selectedProgram?.programLevel === 'mba') {
+      return [
+        { value: "ITI", label: "ITI" },
+        { value: "KGCE", label: "KGCE" },
+        { value: "Diploma", label: "Diploma" },
+        { value: "Post Graduate", label: "Post Graduate" }
+      ];
+    } else {
+      return [
+        { value: "+2/VHSE", label: "+2/VHSE" },
+        { value: "ITI", label: "ITI" },
+        { value: "KGCE", label: "KGCE" },
+        { value: "Diploma", label: "Diploma" },
+        { value: "Degree", label: "Degree" }
+      ];
+    }
   };
 
-  const addSubjectScore = () => {
-    setSubjectScores([...subjectScores, getDefaultSubjectScore()]);
-    setHasChanges(true);
-  };
+  // Add new examination
+  const addExamination = (examinationType: string) => {
+    const isForMBA = selectedProgram?.programLevel === 'mba';
 
-  const removeSubjectScore = (index: number) => {
-    const updated = subjectScores.filter((_, i) => i !== index);
-    setSubjectScores(updated);
-    setHasChanges(true);
-  };
-
-  const handleEntranceExamChange = (exam: string, field: 'selected' | 'score', value: boolean | string) => {
-    setEntranceExams(prev => ({
-      ...prev,
-      [exam]: {
-        ...prev[exam as keyof typeof prev],
-        [field]: value
-      }
-    }));
-    setHasChanges(true);
-  };
-
-  const handleSave = () => {
-    const educationDetails = {
-      educationData,
-      subjectScores,
-      achievements,
-      collegeName,
-      entranceExams
+    const newExamination = {
+      examination: examinationType,
+      passedFailed: "",
+      ...(isForMBA ? {
+        groupSubject: "",
+        yearOfPass: "",
+        percentageMarks: "",
+        registrationNumber: "",
+      } : {
+        groupTrade: "",
+        yearOfPass: "",
+        percentageMarks: "",
+        registrationNumber: "",
+        noOfChances: "",
+        english: "",
+        physics: "",
+        chemistry: "",
+        maths: "",
+      }),
+      isCompulsory: false
     };
 
-    onSave(educationDetails);
-    setHasChanges(false);
+    setFormData({
+      ...formData,
+      educationData: [...(formData.educationData || []), newExamination]
+    });
   };
 
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-            <GraduationCap className="w-5 h-5 text-green-600" />
-          </div>
-          <div>
-            <h2 className="text-xl font-semibold">Education Details</h2>
-            <p className="text-sm text-gray-600">
-              {isDiploma && "Update your academic records and qualifications"}
-              {isMBA && "Update your academic records, entrance exam scores, and achievements"}
-            </p>
-          </div>
-        </div>
-        
-        <Button 
-          onClick={handleSave} 
-          disabled={saving || !hasChanges}
-          className="flex items-center space-x-2"
-        >
-          {saving ? (
-            <>
-              <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
-              <span>Saving...</span>
-            </>
-          ) : (
-            <>
-              <Save className="w-4 h-4" />
-              <span>Save Changes</span>
-            </>
-          )}
-        </Button>
-      </div>
+  // Remove examination
+  const removeExamination = (index: number) => {
+    const updatedEducationData = [...(formData.educationData || [])];
+    updatedEducationData.splice(index, 1);
 
-      {hasChanges && (
-        <Alert className="border-blue-200 bg-blue-50">
-          <Info className="w-4 h-4 text-blue-600" />
-          <AlertDescription className="text-blue-800">
-            You have unsaved changes. Don&apos;t forget to save your updates.
-          </AlertDescription>
-        </Alert>
-      )}
+    setFormData({
+      ...formData,
+      educationData: updatedEducationData
+    });
+  };
 
-      {/* Academic Records */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Book className="w-5 h-5 text-blue-600" />
-            <span>Academic Records</span>
-            <Badge variant="outline" className="ml-2">Required</Badge>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {educationData.map((entry, index) => (
-            <div key={index} className="border rounded-lg p-4 space-y-4 relative">
-              {educationData.length > 1 && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => removeEducationEntry(index)}
-                  className="absolute top-2 right-2 text-red-500 hover:text-red-700"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              )}
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div>
-                  <Label>Examination</Label>
-                  <Select 
-                    value={entry.examination} 
-                    onValueChange={(value) => handleEducationDataChange(index, 'examination', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select examination" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="SSLC">SSLC</SelectItem>
-                      <SelectItem value="Plus Two">Plus Two</SelectItem>
-                      <SelectItem value="Degree">Degree</SelectItem>
-                      <SelectItem value="Diploma">Diploma</SelectItem>
-                      <SelectItem value="ITI">ITI</SelectItem>
-                      <SelectItem value="PG">Post Graduation</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+  // Get examinations that are already added
+  const getAddedExaminations = () => {
+    return (formData.educationData || []).map((exam: any) => exam.examination);
+  };
 
-                <div>
-                  <Label>Passed/Failed</Label>
-                  <Select 
-                    value={entry.passedFailed} 
-                    onValueChange={(value) => handleEducationDataChange(index, 'passedFailed', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Passed">Passed</SelectItem>
-                      <SelectItem value="Failed">Failed</SelectItem>
-                      <SelectItem value="Pursuing">Pursuing</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+  // Get available examinations that haven't been added yet
+  const getAvailableToAdd = () => {
+    const addedExams = getAddedExaminations();
+    return getAvailableExaminations().filter(exam => !addedExams.includes(exam.value));
+  };
 
-                <div>
-                  <Label>Group/Subject</Label>
-                  <Input
-                    value={entry.groupSubject}
-                    onChange={(e) => handleEducationDataChange(index, 'groupSubject', e.target.value)}
-                    placeholder="e.g., Science, Commerce, Arts"
-                  />
-                </div>
+  // Handle input changes for education data
+  const handleEducationDataChange = (index: number, field: string, value: string) => {
+    const updatedEducationData = [...(formData.educationData || [])];
+    updatedEducationData[index] = {
+      ...updatedEducationData[index],
+      [field]: value
+    };
 
-                <div>
-                  <Label>Trade/Stream</Label>
-                  <Input
-                    value={entry.groupTrade}
-                    onChange={(e) => handleEducationDataChange(index, 'groupTrade', e.target.value)}
-                    placeholder="e.g., PCM, PCB, Computer Science"
-                  />
-                </div>
+    setFormData({
+      ...formData,
+      educationData: updatedEducationData
+    });
+  };
 
-                <div>
-                  <Label>Period</Label>
-                  <Input
-                    value={entry.period}
-                    onChange={(e) => handleEducationDataChange(index, 'period', e.target.value)}
-                    placeholder="e.g., 2020-2022"
-                  />
-                </div>
+  // Handle changes for achievements and college name
+  const handleTextChange = (field: string, value: string) => {
+    setFormData({
+      ...formData,
+      [field]: value
+    });
+  };
 
-                <div>
-                  <Label>Year of Passing</Label>
-                  <Input
-                    value={entry.yearOfPass}
-                    onChange={(e) => handleEducationDataChange(index, 'yearOfPass', e.target.value)}
-                    placeholder="e.g., 2022"
-                  />
-                </div>
+  // Handle entrance exam changes
+  const handleEntranceExamChange = (exam: string, field: string, value: any) => {
+    setFormData({
+      ...formData,
+      entranceExams: {
+        ...formData.entranceExams,
+        [exam]: {
+          ...formData.entranceExams?.[exam],
+          [field]: value
+        }
+      }
+    });
+  };
 
-                <div>
-                  <Label>Percentage/Marks</Label>
-                  <Input
-                    value={entry.percentageMarks}
-                    onChange={(e) => handleEducationDataChange(index, 'percentageMarks', e.target.value)}
-                    placeholder="e.g., 85%"
-                  />
-                </div>
+  // Handle subject scores changes (for diploma LET)
+  const handleSubjectScoreChange = (index: number, field: string, value: string) => {
+    const updatedSubjectScores = [...(formData.subjectScores || [])];
+    updatedSubjectScores[index] = {
+      ...updatedSubjectScores[index],
+      [field]: value
+    };
 
-                <div>
-                  <Label>Board/University</Label>
-                  <Input
-                    value={entry.boardUniversity}
-                    onChange={(e) => handleEducationDataChange(index, 'boardUniversity', e.target.value)}
-                    placeholder="e.g., CBSE, Kerala Board"
-                  />
-                </div>
+    setFormData({
+      ...formData,
+      subjectScores: updatedSubjectScores
+    });
+  };
 
-                <div>
-                  <Label>Number of Chances</Label>
-                  <Input
-                    value={entry.noOfChances}
-                    onChange={(e) => handleEducationDataChange(index, 'noOfChances', e.target.value)}
-                    placeholder="e.g., 1"
-                  />
-                </div>
-              </div>
-
-              {isDiploma && (
-                <div>
-                  <h4 className="font-medium text-sm text-gray-700 mb-3">Subject-wise Marks</h4>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div>
-                      <Label className="text-sm">English</Label>
-                      <Input
-                        value={entry.english}
-                        onChange={(e) => handleEducationDataChange(index, 'english', e.target.value)}
-                        placeholder="Marks"
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-sm">Physics</Label>
-                      <Input
-                        value={entry.physics}
-                        onChange={(e) => handleEducationDataChange(index, 'physics', e.target.value)}
-                        placeholder="Marks"
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-sm">Chemistry</Label>
-                      <Input
-                        value={entry.chemistry}
-                        onChange={(e) => handleEducationDataChange(index, 'chemistry', e.target.value)}
-                        placeholder="Marks"
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-sm">Mathematics</Label>
-                      <Input
-                        value={entry.maths}
-                        onChange={(e) => handleEducationDataChange(index, 'maths', e.target.value)}
-                        placeholder="Marks"
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
-          
-          <Button 
-            variant="outline" 
-            onClick={addEducationEntry}
-            className="w-full flex items-center space-x-2"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Add Another Academic Record</span>
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* Subject Scores for Diploma */}
-      {isDiploma && (
+  // Render the appropriate form based on program type and mode
+  const renderEducationForm = () => {
+    if (!selectedProgram) {
+      return (
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Award className="w-5 h-5 text-purple-600" />
-              <span>Subject Scores</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {subjectScores.map((score, index) => (
-              <div key={index} className="border rounded-lg p-4 space-y-4 relative">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => removeSubjectScore(index)}
-                  className="absolute top-2 right-2 text-red-500 hover:text-red-700"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div>
-                    <Label>Examination</Label>
-                    <Input
-                      value={score.examination}
-                      onChange={(e) => handleSubjectScoreChange(index, 'examination', e.target.value)}
-                      placeholder="e.g., Plus Two"
-                    />
-                  </div>
-                  <div>
-                    <Label>Physics</Label>
-                    <Input
-                      value={score.physics}
-                      onChange={(e) => handleSubjectScoreChange(index, 'physics', e.target.value)}
-                      placeholder="Score"
-                    />
-                  </div>
-                  <div>
-                    <Label>Chemistry</Label>
-                    <Input
-                      value={score.chemistry}
-                      onChange={(e) => handleSubjectScoreChange(index, 'chemistry', e.target.value)}
-                      placeholder="Score"
-                    />
-                  </div>
-                  <div>
-                    <Label>Mathematics</Label>
-                    <Input
-                      value={score.maths}
-                      onChange={(e) => handleSubjectScoreChange(index, 'maths', e.target.value)}
-                      placeholder="Score"
-                    />
-                  </div>
-                  <div>
-                    <Label>Total</Label>
-                    <Input
-                      value={score.total}
-                      onChange={(e) => handleSubjectScoreChange(index, 'total', e.target.value)}
-                      placeholder="Total Score"
-                    />
-                  </div>
-                  <div>
-                    <Label>Remarks</Label>
-                    <Input
-                      value={score.remarks}
-                      onChange={(e) => handleSubjectScoreChange(index, 'remarks', e.target.value)}
-                      placeholder="Any remarks"
-                    />
-                  </div>
-                </div>
-              </div>
-            ))}
-            
-            <Button 
-              variant="outline" 
-              onClick={addSubjectScore}
-              className="w-full flex items-center space-x-2"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Add Subject Score Entry</span>
-            </Button>
+          <CardContent className="pt-6">
+            <p className="text-center text-gray-500">
+              Please select a program first to configure education details.
+            </p>
           </CardContent>
         </Card>
-      )}
+      );
+    }
 
-      {/* MBA Specific Fields */}
-      {isMBA && (
-        <>
-          {/* College Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <School className="w-5 h-5 text-indigo-600" />
-                <span>College Information</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+    return (
+      <div className="space-y-6">
+        {/* Header Info */}
+        <div className="bg-gradient-to-r from-secondary/10 to-secondary/5 p-4 border rounded-lg">
+          <h3 className="text-sm md:text-base font-semibold text-gray-800 mb-2">
+            Education Qualifications ({selectedProgram.programLevel === 'mba' ? 'MBA' : 'Diploma'})
+          </h3>
+          <p className="text-xs md:text-sm text-gray-600">
+            Please provide details of your academic qualifications for {selectedProgram.programName} admission.
+            {selectedProgram.programLevel === 'mba' ? (
+              <span className="text-red-600 font-medium"> SSLC/THSLC/CBSE, +2/VHSE, and Degree are mandatory</span>
+            ) : (
+              <span className="text-red-600 font-medium"> SSLC/THSLC/CBSE is mandatory</span>
+            )} for all applicants.
+          </p>
+        </div>
+
+        {/* Education Cards */}
+        <div className="space-y-2">
+          {(formData.educationData || []).map((row: any, index: number) => (
+            <Card key={index} className={`transition-all duration-200 hover:shadow-md ${
+              row.isCompulsory ? 'ring-2 ring-red-100 border-red-200 bg-red-50/30' : 'border-gray-200'
+            }`}>
+              <CardHeader>
+                <div className="flex justify-between sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                    <span className="bg-primary/10 text-primary px-2 py-1.5 rounded-full text-xs font-medium">
+                      {index + 1}
+                    </span>
+                    {row.examination}
+                    {row.isCompulsory && (
+                      <Badge variant="destructive" className="text-xs">
+                        Required
+                      </Badge>
+                    )}
+                    {!row.isCompulsory && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeExamination(index)}
+                        className="h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    )}
+                  </CardTitle>
+
+                  {/* Status Badge - Mobile First */}
+                  <div className="flex justify-start sm:justify-end">
+                    {row.isCompulsory ? (
+                      <Badge variant="default" className="bg-green-100 text-green-800 hover:bg-green-100">
+                        ✓ Passed
+                      </Badge>
+                    ) : (
+                      <div className="w-full sm:w-auto sm:min-w-[120px]">
+                        <Select
+                          value={row.passedFailed}
+                          onValueChange={(value) => handleEducationDataChange(index, 'passedFailed', value)}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select Status" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Passed">✓ Passed</SelectItem>
+                            <SelectItem value="Failed">✗ Failed</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </CardHeader>
+
+              <CardContent className="space-y-2">
+                {renderEducationCardContent(row, index)}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Add Examination Section */}
+        {getAvailableToAdd().length > 0 && (
+          <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 bg-gray-50/50">
+            <div className="text-center space-y-4">
               <div>
-                <Label>College Name</Label>
-                <Input
-                  value={collegeName}
-                  onChange={(e) => {
-                    setCollegeName(e.target.value);
-                    setHasChanges(true);
-                  }}
-                  placeholder="Enter your college/university name"
-                />
+                <h4 className="text-sm font-medium text-gray-700 mb-2">
+                  Add Additional Qualification
+                </h4>
+                <p className="text-xs text-gray-500">
+                  Add other educational qualifications if applicable
+                </p>
               </div>
-            </CardContent>
-          </Card>
 
-          {/* Achievements */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Award className="w-5 h-5 text-yellow-600" />
-                <span>Achievements & Awards</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div>
-                <Label>Achievements</Label>
-                <Textarea
-                  value={achievements}
-                  onChange={(e) => {
-                    setAchievements(e.target.value);
-                    setHasChanges(true);
-                  }}
-                  placeholder="Describe your academic achievements, awards, certifications, etc."
-                  rows={4}
-                />
+              <div className="flex flex-wrap justify-center gap-2">
+                {getAvailableToAdd().map((exam) => (
+                  <Button
+                    key={exam.value}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => addExamination(exam.value)}
+                    className="h-8 text-xs border-primary text-primary hover:bg-primary hover:text-white"
+                  >
+                    <Plus className="h-3 w-3 mr-1" />
+                    Add {exam.label}
+                  </Button>
+                ))}
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
+        )}
 
-          {/* Entrance Exams */}
-          <Card>
+        {/* Additional Information for MBA */}
+        {selectedProgram.programLevel === 'mba' && (
+          <Card className="border-gray-200">
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Book className="w-5 h-5 text-red-600" />
-                <span>Entrance Exam Scores</span>
+              <CardTitle className="text-sm font-semibold text-gray-800">
+                Additional Information
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              {Object.entries(entranceExams).map(([examKey, examData]) => (
-                <div key={examKey} className="border rounded-lg p-4 space-y-4">
-                  <div className="flex items-center space-x-3">
+              {/* Achievements */}
+              <div className="space-y-2">
+                <Label htmlFor="achievements" className="text-sm font-medium text-gray-700">
+                  Achievements/Work Experience (if any)
+                </Label>
+                <Textarea
+                  id="achievements"
+                  value={formData.achievements || ""}
+                  onChange={(e) => handleTextChange('achievements', e.target.value)}
+                  className="w-full"
+                  placeholder="Describe your achievements and work experience..."
+                  rows={3}
+                />
+              </div>
+
+              {/* College Name */}
+              <div className="space-y-2">
+                <Label htmlFor="college-name" className="text-sm font-medium text-gray-700">
+                  Name of the College where UG was completed
+                </Label>
+                <Input
+                  id="college-name"
+                  value={formData.collegeName || ""}
+                  onChange={(e) => handleTextChange('collegeName', e.target.value)}
+                  className="w-full"
+                  placeholder="Enter college name"
+                />
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Entrance Examinations for MBA */}
+        {selectedProgram.programLevel === 'mba' && (
+          <Card className="border-purple-200 bg-purple-50/30">
+            <CardHeader>
+              <CardTitle className="text-sm font-semibold text-purple-800">
+                Entrance Examination Details
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                {/* KMAT */}
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-2">
                     <Checkbox
-                      checked={examData.selected}
-                      onCheckedChange={(checked) => 
-                        handleEntranceExamChange(examKey, 'selected', checked as boolean)
+                      id="kmat"
+                      checked={formData.entranceExams?.kmat?.selected || false}
+                      onCheckedChange={(checked) =>
+                        handleEntranceExamChange('kmat', 'selected', checked === true)
                       }
+                      className="cursor-pointer"
                     />
-                    <Label className="text-sm font-medium">
-                      {examKey.toUpperCase()} - {
-                        examKey === 'kmat' ? 'Kerala Management Aptitude Test' :
-                        examKey === 'cmat' ? 'Common Management Aptitude Test' :
-                        'Common Admission Test'
-                      }
+                    <Label htmlFor="kmat" className="text-sm font-medium text-purple-800">
+                      KMAT
                     </Label>
                   </div>
-                  
-                  {examData.selected && (
-                    <div>
-                      <Label>Score</Label>
+                  {formData.entranceExams?.kmat?.selected && (
+                    <div className="space-y-2">
+                      <Label className="text-xs text-gray-600">Score</Label>
                       <Input
-                        value={examData.score}
-                        onChange={(e) => handleEntranceExamChange(examKey, 'score', e.target.value)}
-                        placeholder={`Enter your ${examKey.toUpperCase()} score`}
+                        value={formData.entranceExams?.kmat?.score || ""}
+                        onChange={(e) => handleEntranceExamChange('kmat', 'score', e.target.value)}
+                        placeholder="Enter KMAT score"
+                        type="number"
+                        className="w-full"
                       />
                     </div>
                   )}
                 </div>
-              ))}
+
+                {/* CMAT */}
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="cmat"
+                      checked={formData.entranceExams?.cmat?.selected || false}
+                      onCheckedChange={(checked) =>
+                        handleEntranceExamChange('cmat', 'selected', checked === true)
+                      }
+                      className="cursor-pointer"
+                    />
+                    <Label htmlFor="cmat" className="text-sm font-medium text-purple-800">
+                      CMAT
+                    </Label>
+                  </div>
+                  {formData.entranceExams?.cmat?.selected && (
+                    <div className="space-y-2">
+                      <Label className="text-xs text-gray-600">Score</Label>
+                      <Input
+                        value={formData.entranceExams?.cmat?.score || ""}
+                        onChange={(e) => handleEntranceExamChange('cmat', 'score', e.target.value)}
+                        placeholder="Enter CMAT score"
+                        type="number"
+                        className="w-full"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* CAT */}
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="cat"
+                      checked={formData.entranceExams?.cat?.selected || false}
+                      onCheckedChange={(checked) =>
+                        handleEntranceExamChange('cat', 'selected', checked === true)
+                      }
+                      className="cursor-pointer"
+                    />
+                    <Label htmlFor="cat" className="text-sm font-medium text-purple-800">
+                      CAT
+                    </Label>
+                  </div>
+                  {formData.entranceExams?.cat?.selected && (
+                    <div className="space-y-2">
+                      <Label className="text-xs text-gray-600">Score</Label>
+                      <Input
+                        value={formData.entranceExams?.cat?.score || ""}
+                        onChange={(e) => handleEntranceExamChange('cat', 'score', e.target.value)}
+                        placeholder="Enter CAT score"
+                        type="number"
+                        className="w-full"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
             </CardContent>
           </Card>
-        </>
+        )}
+
+        {/* Footer Info */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-800">
+          <div className="flex items-start gap-2">
+            <div className="w-5 h-5 rounded-full bg-blue-200 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <span className="text-blue-600 text-xs">i</span>
+            </div>
+            <div>
+              <p className="font-medium mb-1">Important Notes:</p>
+              <ul className="space-y-1 text-xs">
+                {selectedProgram.programLevel === 'mba' ? (
+                  <>
+                    <li>• SSLC/THSLC/CBSE, +2/VHSE, and Degree qualifications are mandatory for MBA programs</li>
+                    <li>• Fill in details for additional qualifications if applicable</li>
+                    <li>• Entrance exam scores are optional but recommended</li>
+                  </>
+                ) : (
+                  <>
+                    <li>• SSLC/THSLC/CBSE qualification is mandatory for all diploma programs</li>
+                    <li>• Fill in details for additional qualifications if applicable</li>
+                  </>
+                )}
+                <li>• Ensure all information matches your certificates</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Render card content based on program type
+  const renderEducationCardContent = (row: any, index: number) => {
+    const isForMBA = selectedProgram?.programLevel === 'mba';
+
+    return (
+      <>
+        {/* Form Grid - Responsive */}
+        <div className={`grid gap-4 ${
+          row.examination === "SSLC/THSLC/CBSE" && !isForMBA
+            ? 'grid-cols-1 sm:grid-cols-3'
+            : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'
+        }`}>
+
+          {/* Group/Subject - Not for SSLC/THSLC/CBSE */}
+          {row.examination !== "SSLC/THSLC/CBSE" && (
+            <div className="space-y-2">
+              <Label htmlFor={`group-${index}`} className="text-sm font-medium text-gray-700">
+                {isForMBA ?
+                  (row.examination === "Degree" ? "Subject/Course" : "Group/Subject") :
+                  "Group/Trade"
+                }
+              </Label>
+              <Input
+                id={`group-${index}`}
+                value={isForMBA ? (row.groupSubject || "") : (row.groupTrade || "")}
+                onChange={(e) => handleEducationDataChange(index, isForMBA ? 'groupSubject' : 'groupTrade', e.target.value)}
+                className="w-full"
+                placeholder={
+                  isForMBA ? (
+                    row.examination === "+2/VHSE" ? "e.g., Science, Commerce" :
+                    row.examination === "Degree" ? "e.g., B.Tech, B.Com, BA" :
+                    "Group/Subject"
+                  ) : "e.g., Electronics, IT"
+                }
+              />
+            </div>
+          )}
+
+          {/* Year of Pass */}
+          <div className="space-y-2">
+            <Label htmlFor={`year-${index}`} className="text-sm font-medium text-gray-700">
+              Year of Passing
+              {row.isCompulsory && <span className="text-red-500 ml-1">*</span>}
+            </Label>
+            <Input
+              id={`year-${index}`}
+              value={row.yearOfPass || ""}
+              onChange={(e) => handleEducationDataChange(index, 'yearOfPass', e.target.value)}
+              className="w-full"
+              placeholder="e.g., 2020"
+              type="number"
+              min="1950"
+              max={new Date().getFullYear()}
+            />
+          </div>
+
+          {/* Percentage */}
+          <div className="space-y-2">
+            <Label htmlFor={`percentage-${index}`} className="text-sm font-medium text-gray-700">
+              Percentage (%)
+              {row.isCompulsory && <span className="text-red-500 ml-1">*</span>}
+            </Label>
+            <div className="relative">
+              <Input
+                id={`percentage-${index}`}
+                value={row.percentageMarks || ""}
+                onChange={(e) => handleEducationDataChange(index, 'percentageMarks', e.target.value)}
+                className="w-full pr-8"
+                placeholder="85.5"
+                type="number"
+                min="0"
+                max="100"
+                step="0.1"
+              />
+              <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm">
+                %
+              </span>
+            </div>
+          </div>
+
+          {/* Registration Number */}
+          <div className="space-y-2">
+            <Label htmlFor={`reg-${index}`} className="text-sm font-medium text-gray-700">
+              Registration Number
+              {row.isCompulsory && <span className="text-red-500 ml-1">*</span>}
+            </Label>
+            <Input
+              id={`reg-${index}`}
+              value={row.registrationNumber || ""}
+              onChange={(e) => handleEducationDataChange(index, 'registrationNumber', e.target.value)}
+              className="w-full"
+              placeholder="Registration number"
+            />
+          </div>
+
+          {/* Subject Marks for Diploma programs */}
+          {!isForMBA && (row.english || row.physics || row.chemistry || row.maths) && (
+            <div className="col-span-full">
+              <Label className="text-xs font-medium text-gray-700">Subject Marks</Label>
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 mt-2">
+                <div className="space-y-1">
+                  <Label className="text-xs text-gray-600">English</Label>
+                  <Input
+                    value={row.english || ""}
+                    onChange={(e) => handleEducationDataChange(index, 'english', e.target.value)}
+                    placeholder="Grade"
+                    className="w-full"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-gray-600">Physics</Label>
+                  <Input
+                    value={row.physics || ""}
+                    onChange={(e) => handleEducationDataChange(index, 'physics', e.target.value)}
+                    placeholder="Grade"
+                    className="w-full"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-gray-600">Chemistry</Label>
+                  <Input
+                    value={row.chemistry || ""}
+                    onChange={(e) => handleEducationDataChange(index, 'chemistry', e.target.value)}
+                    placeholder="Grade"
+                    className="w-full"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-gray-600">Maths</Label>
+                  <Input
+                    value={row.maths || ""}
+                    onChange={(e) => handleEducationDataChange(index, 'maths', e.target.value)}
+                    placeholder="Grade"
+                    className="w-full"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Progress Indicator */}
+        <div className="pt-2">
+          <div className="flex items-center justify-between text-xs text-gray-500">
+            <span className="font-medium">Completion Status:</span>
+            <div className="flex items-center gap-2">
+              {[
+                { field: 'yearOfPass', label: 'Year' },
+                { field: 'percentageMarks', label: 'Percentage' },
+                { field: 'registrationNumber', label: 'Reg. No.' }
+              ].map(({ field, label }) => (
+                <div key={field} className="flex items-center gap-1">
+                  <div className={`w-2 h-2 rounded-full ${
+                    row[field] ? 'bg-green-500' : 'bg-gray-300'
+                  }`} />
+                  <span className={row[field] ? 'text-green-600' : 'text-gray-400'}>
+                    {label}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  };
+
+  return (
+    <div className="space-y-6">
+      {renderEducationForm()}
+
+      {/* Error Summary */}
+      {Object.keys(errors).length > 0 && (
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="pt-6">
+            <div className="space-y-1">
+              {Object.values(errors).map((error, index) => (
+                <p key={index} className="text-sm text-red-600">{error}</p>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       )}
+
+      {/* Save Button */}
+      <div className="flex justify-end pt-4">
+        <Button
+          onClick={handleSubmit}
+          disabled={saving || isLoading}
+          className="bg-[#001c67] hover:bg-[#001c67]/90 text-white"
+        >
+          <Save className="w-4 h-4 mr-2" />
+          {saving ? 'Saving...' : 'Save Education Details'}
+        </Button>
+      </div>
     </div>
   );
-}
+};
+
+export default EducationDetailsForm;
