@@ -22,7 +22,7 @@ import {
   Building,
   BookOpen
 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { get, patch } from '@/utilities/AxiosInterceptor';
 import { useToast } from '@/components/ui/use-toast';
@@ -85,6 +85,24 @@ interface StudentApplication {
   admissionNumber: string;
   status: string;
   currentStage: string;
+  sectionStatus?: {
+    personalDetails?: {
+      isCompleted: boolean;
+      isLocked: boolean;
+    };
+    addressFamilyDetails?: {
+      isCompleted: boolean;
+      isLocked: boolean;
+    };
+    educationDetails?: {
+      isCompleted: boolean;
+      isLocked: boolean;
+    };
+    programSelection?: {
+      isCompleted: boolean;
+      isLocked: boolean;
+    };
+  };
 }
 
 export default function ProfilePage() {
@@ -94,11 +112,20 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
 
   useEffect(() => {
     fetchApplicationData();
   }, []);
+
+  useEffect(() => {
+    // Check for tab parameter in URL
+    const tab = searchParams.get('tab');
+    if (tab && ['personal', 'address', 'education', 'program'].includes(tab)) {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
 
   const fetchApplicationData = async () => {
     try {
@@ -374,6 +401,7 @@ export default function ProfilePage() {
                   onSave={handleSavePersonalDetails}
                   saving={saving}
                   onProfilePictureUpdate={fetchApplicationData}
+                  sectionStatus={application.sectionStatus?.personalDetails}
                 />
               </TabsContent>
 
@@ -383,6 +411,7 @@ export default function ProfilePage() {
                      applicationData={application}
                      onSave={handleSaveAddressAndFamily}
                      saving={saving}
+                     sectionStatus={application.sectionStatus?.addressFamilyDetails}
                    />
                  </Suspense>
                </TabsContent>
@@ -393,6 +422,7 @@ export default function ProfilePage() {
                      applicationData={application}
                      onSave={handleSaveEducationDetails}
                      saving={saving}
+                     sectionStatus={application.sectionStatus?.educationDetails}
                    />
                  </Suspense>
                </TabsContent>

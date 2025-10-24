@@ -7,13 +7,17 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Save, MapPin, Users, Home, Phone } from 'lucide-react';
+import { Save, MapPin, Users, Home, Phone, Lock, CheckCircle2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 
 interface AddressAndFamilyFormProps {
   applicationData: any;
   onSave: (data: any) => void;
   saving: boolean;
+  sectionStatus?: {
+    isCompleted: boolean;
+    isLocked: boolean;
+  };
 }
 
 interface AddressAndFamilyData {
@@ -42,7 +46,8 @@ interface AddressAndFamilyData {
 export const AddressAndFamilyForm: React.FC<AddressAndFamilyFormProps> = ({
   applicationData,
   onSave,
-  saving
+  saving,
+  sectionStatus
 }) => {
   const { toast } = useToast();
 
@@ -74,6 +79,7 @@ export const AddressAndFamilyForm: React.FC<AddressAndFamilyFormProps> = ({
   const [sameAsFather, setSameAsFather] = useState(false);
   const [sameAsMother, setSameAsMother] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
+  const [lastPincodeFetched, setLastPincodeFetched] = useState('');
 
   useEffect(() => {
     const fetchExistingData = async () => {
@@ -109,6 +115,11 @@ export const AddressAndFamilyForm: React.FC<AddressAndFamilyFormProps> = ({
             guardianPlace: guardian.guardianPlace || "",
             guardianContact: guardian.guardianContact || ""
           });
+
+          // Set the last fetched pincode to prevent API call on initial load
+          if (address.pinCode) {
+            setLastPincodeFetched(address.pinCode);
+          }
         }
       } catch (error: any) {
         console.error("Error fetching application data:", error);
@@ -138,6 +149,12 @@ export const AddressAndFamilyForm: React.FC<AddressAndFamilyFormProps> = ({
       [field]: value
     }));
     setHasChanges(true);
+
+    // Handle PIN code changes - trigger API call only when user manually changes it
+    if (field === 'pinCode' && value.length === 6 && value !== lastPincodeFetched) {
+      setLastPincodeFetched(value);
+      fetchAddressFromPincode(value);
+    }
   };
 
   const handleMobileChange = (field: string, value: string) => {
@@ -229,15 +246,22 @@ export const AddressAndFamilyForm: React.FC<AddressAndFamilyFormProps> = ({
             postOffice: postOffice.Name || ''
           }));
         } else {
-          // Clear post office selection if multiple options exist
-          // But still fill district and state from first entry
+          // For multiple offices, only update district and state if postOffice is not already selected
           const firstOffice = availableOffices[0];
-          setFormData(prev => ({
-            ...prev,
-            district: firstOffice.District || '',
-            state: firstOffice.State || '',
-            postOffice: '' // Clear to let user select
-          }));
+          setFormData(prev => {
+            // Check if current postOffice is valid for this pincode
+            const isCurrentPostOfficeValid = availableOffices.some(
+              (office: any) => office.Name === prev.postOffice
+            );
+            
+            return {
+              ...prev,
+              district: firstOffice.District || '',
+              state: firstOffice.State || '',
+              // Only clear postOffice if it's not valid for this pincode
+              postOffice: isCurrentPostOfficeValid ? prev.postOffice : ''
+            };
+          });
         }
 
         if (availableOffices.length > 1) {
@@ -267,12 +291,7 @@ export const AddressAndFamilyForm: React.FC<AddressAndFamilyFormProps> = ({
     }
   }, [toast]);
 
-  // Effect to trigger address lookup when PIN code changes
-  useEffect(() => {
-    if (formData.pinCode.length === 6) {
-      fetchAddressFromPincode(formData.pinCode);
-    }
-  }, [formData.pinCode, fetchAddressFromPincode]);
+  // No longer automatically triggering API on pinCode changes - handled in handleInputChange
 
   const validateForm = (): boolean => {
     // Validate mobile numbers before submission
@@ -340,15 +359,49 @@ export const AddressAndFamilyForm: React.FC<AddressAndFamilyFormProps> = ({
     }
   };
 
+  const isLocked = sectionStatus?.isLocked || false;
+  const isCompleted = sectionStatus?.isCompleted || false;
+
   return (
     <div className="space-y-3">
       {/* Header */}
       <div className="space-y-1">
-        <h1 className="text-xl font-semibold text-gray-900">Address & Family Details</h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-xl font-semibold text-gray-900">Address & Family Details</h1>
+          <div className="flex items-center space-x-2">
+            {isCompleted && (
+              <div className="flex items-center space-x-1 text-green-600">
+                <CheckCircle2 className="w-4 h-4" />
+                <span className="text-xs font-medium">Completed</span>
+              </div>
+            )}
+            {isLocked && (
+              <div className="flex items-center space-x-1 text-amber-600">
+                <Lock className="w-4 h-4" />
+                <span className="text-xs font-medium">Locked</span>
+              </div>
+            )}
+          </div>
+        </div>
         <p className="text-gray-700 text-sm leading-relaxed">
           Please fill in your address and family information
         </p>
       </div>
+
+      {/* Locked Section Message */}
+      {isLocked && (
+        <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+          <div className="flex items-center space-x-2">
+            <Lock className="w-4 h-4 text-amber-600" />
+            <span className="text-sm font-medium text-amber-800">
+              This section has been completed and locked
+            </span>
+          </div>
+          <p className="text-xs text-amber-600 mt-1">
+            Contact the administration if you need to make changes to this section.
+          </p>
+        </div>
+      )}
 
       {isLoading ? (
         <div className="flex justify-center items-center py-6">
@@ -373,8 +426,8 @@ export const AddressAndFamilyForm: React.FC<AddressAndFamilyFormProps> = ({
                     placeholder="Enter house"
                     value={formData.houseNumber}
                     onChange={(e) => handleInputChange("houseNumber", e.target.value)}
-                    className="rounded-none"
-                    disabled={saving}
+                    className={`rounded-none ${isLocked ? 'bg-gray-50 cursor-not-allowed' : ''}`}
+                    disabled={saving || isLocked}
                   />
                 </div>
                 <div className="space-y-2">
@@ -386,8 +439,8 @@ export const AddressAndFamilyForm: React.FC<AddressAndFamilyFormProps> = ({
                     placeholder="Enter place/street"
                     value={formData.street}
                     onChange={(e) => handleInputChange("street", e.target.value)}
-                    className="rounded-none"
-                    disabled={saving}
+                    className={`rounded-none ${isLocked ? 'bg-gray-50 cursor-not-allowed' : ''}`}
+                    disabled={saving || isLocked}
                   />
                 </div>
               </div>
@@ -407,14 +460,14 @@ export const AddressAndFamilyForm: React.FC<AddressAndFamilyFormProps> = ({
                         const value = e.target.value.replace(/\D/g, '');
                         handleInputChange("pinCode", value);
                       }}
-                      className="rounded-none"
+                      className={`rounded-none ${isLocked ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                       maxLength={6}
                       onBlur={(e) => {
                         if (e.target.value.length === 6) {
                           fetchAddressFromPincode(e.target.value);
                         }
                       }}
-                      disabled={saving || isLoadingPincode}
+                      disabled={saving || isLoadingPincode || isLocked}
                     />
                     {isLoadingPincode && (
                       <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
@@ -434,9 +487,9 @@ export const AddressAndFamilyForm: React.FC<AddressAndFamilyFormProps> = ({
                     <Select
                       value={formData.postOffice}
                       onValueChange={(value) => handleInputChange("postOffice", value)}
-                      disabled={saving || isLoadingPincode}
+                      disabled={saving || isLoadingPincode || isLocked}
                     >
-                      <SelectTrigger className="w-full rounded-none">
+                      <SelectTrigger className={`w-full rounded-none ${isLocked ? 'bg-gray-50 cursor-not-allowed' : ''}`}>
                         <SelectValue placeholder="Select post office" />
                       </SelectTrigger>
                       <SelectContent>
@@ -453,8 +506,8 @@ export const AddressAndFamilyForm: React.FC<AddressAndFamilyFormProps> = ({
                       placeholder="Enter post office or PIN code to auto-fill"
                       value={formData.postOffice}
                       onChange={(e) => handleInputChange("postOffice", e.target.value)}
-                      className="rounded-none"
-                      disabled={saving || isLoadingPincode}
+                      className={`rounded-none ${isLocked ? 'bg-gray-50 cursor-not-allowed' : ''}`}
+                      disabled={saving || isLoadingPincode || isLocked}
                     />
                   )}
                 </div>
@@ -467,8 +520,8 @@ export const AddressAndFamilyForm: React.FC<AddressAndFamilyFormProps> = ({
                     placeholder="Enter district"
                     value={formData.district}
                     onChange={(e) => handleInputChange("district", e.target.value)}
-                    className="rounded-none"
-                    disabled={saving}
+                    className={`rounded-none ${isLocked ? 'bg-gray-50 cursor-not-allowed' : ''}`}
+                    disabled={saving || isLocked}
                   />
                 </div>
               </div>
@@ -483,8 +536,8 @@ export const AddressAndFamilyForm: React.FC<AddressAndFamilyFormProps> = ({
                     placeholder="Enter state"
                     value={formData.state}
                     onChange={(e) => handleInputChange("state", e.target.value)}
-                    className="rounded-none"
-                    disabled={saving}
+                    className={`rounded-none ${isLocked ? 'bg-gray-50 cursor-not-allowed' : ''}`}
+                    disabled={saving || isLocked}
                   />
                 </div>
                 <div className="space-y-2 cursor-not-allowed">
@@ -518,8 +571,8 @@ export const AddressAndFamilyForm: React.FC<AddressAndFamilyFormProps> = ({
                     placeholder="Enter father's name"
                     value={formData.fatherName}
                     onChange={(e) => handleInputChange("fatherName", e.target.value)}
-                    className="rounded-none"
-                    disabled={saving}
+                    className={`rounded-none ${isLocked ? 'bg-gray-50 cursor-not-allowed' : ''}`}
+                    disabled={saving || isLocked}
                   />
                 </div>
                 <div className="space-y-2">
@@ -531,9 +584,9 @@ export const AddressAndFamilyForm: React.FC<AddressAndFamilyFormProps> = ({
                     placeholder="Enter father's mobile (10 digits)"
                     value={formData.fatherMobile}
                     onChange={(e) => handleMobileChange("fatherMobile", e.target.value)}
-                    className={`rounded-none ${formData.fatherMobile && formData.fatherMobile.length === 10 && !validateIndianMobile(formData.fatherMobile) ? 'border-red-500 focus:border-red-500' : ''}`}
+                    className={`rounded-none ${formData.fatherMobile && formData.fatherMobile.length === 10 && !validateIndianMobile(formData.fatherMobile) ? 'border-red-500 focus:border-red-500' : ''} ${isLocked ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                     maxLength={10}
-                    disabled={saving}
+                    disabled={saving || isLocked}
                   />
                 </div>
                </div>
@@ -548,8 +601,8 @@ export const AddressAndFamilyForm: React.FC<AddressAndFamilyFormProps> = ({
                     placeholder="Enter mother's name"
                     value={formData.motherName}
                     onChange={(e) => handleInputChange("motherName", e.target.value)}
-                    className="rounded-none"
-                    disabled={saving}
+                    className={`rounded-none ${isLocked ? 'bg-gray-50 cursor-not-allowed' : ''}`}
+                    disabled={saving || isLocked}
                   />
                 </div>
                 <div className="space-y-2">
@@ -561,9 +614,9 @@ export const AddressAndFamilyForm: React.FC<AddressAndFamilyFormProps> = ({
                     placeholder="Enter mother's mobile (10 digits)"
                     value={formData.motherMobile}
                     onChange={(e) => handleMobileChange("motherMobile", e.target.value)}
-                    className={`rounded-none ${formData.motherMobile && formData.motherMobile.length === 10 && !validateIndianMobile(formData.motherMobile) ? 'border-red-500 focus:border-red-500' : ''}`}
+                    className={`rounded-none ${formData.motherMobile && formData.motherMobile.length === 10 && !validateIndianMobile(formData.motherMobile) ? 'border-red-500 focus:border-red-500' : ''} ${isLocked ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                     maxLength={10}
-                    disabled={saving}
+                    disabled={saving || isLocked}
                   />
                 </div>
               </div>
@@ -582,8 +635,9 @@ export const AddressAndFamilyForm: React.FC<AddressAndFamilyFormProps> = ({
                   <Checkbox
                     id="sameAsFather"
                     checked={sameAsFather}
+                    defaultChecked={sameAsFather}
                     onCheckedChange={handleSameAsFatherChange}
-                    disabled={saving || !formData.fatherName || !formData.fatherMobile}
+                    disabled={saving || !formData.fatherName || !formData.fatherMobile || isLocked}
                   />
                   <Label
                     htmlFor="sameAsFather"
@@ -596,8 +650,9 @@ export const AddressAndFamilyForm: React.FC<AddressAndFamilyFormProps> = ({
                   <Checkbox
                     id="sameAsMother"
                     checked={sameAsMother}
+                    defaultChecked={sameAsMother}
                     onCheckedChange={handleSameAsMotherChange}
-                    disabled={saving || !formData.motherName || !formData.motherMobile}
+                    disabled={saving || !formData.motherName || !formData.motherMobile || isLocked}
                   />
                   <Label
                     htmlFor="sameAsMother"
@@ -617,8 +672,8 @@ export const AddressAndFamilyForm: React.FC<AddressAndFamilyFormProps> = ({
                     placeholder="Enter name"
                     value={formData.guardianName}
                     onChange={(e) => handleInputChange("guardianName", e.target.value)}
-                    className="rounded-none"
-                    disabled={saving}
+                    className={`rounded-none ${isLocked ? 'bg-gray-50 cursor-not-allowed' : ''}`}
+                    disabled={saving || isLocked}
                   />
                 </div>
                 <div className="space-y-2">
@@ -630,8 +685,8 @@ export const AddressAndFamilyForm: React.FC<AddressAndFamilyFormProps> = ({
                     placeholder="Enter place"
                     value={formData.guardianPlace}
                     onChange={(e) => handleInputChange("guardianPlace", e.target.value)}
-                    className="rounded-none"
-                    disabled={saving}
+                    className={`rounded-none ${isLocked ? 'bg-gray-50 cursor-not-allowed' : ''}`}
+                    disabled={saving || isLocked}
                   />
                 </div>
               </div>
@@ -645,9 +700,9 @@ export const AddressAndFamilyForm: React.FC<AddressAndFamilyFormProps> = ({
                   placeholder="Enter contact (10 digits)"
                   value={formData.guardianContact}
                   onChange={(e) => handleMobileChange("guardianContact", e.target.value)}
-                  className={`rounded-none ${formData.guardianContact && formData.guardianContact.length === 10 && !validateIndianMobile(formData.guardianContact) ? 'border-red-500 focus:border-red-500' : ''}`}
+                  className={`rounded-none ${formData.guardianContact && formData.guardianContact.length === 10 && !validateIndianMobile(formData.guardianContact) ? 'border-red-500 focus:border-red-500' : ''} ${isLocked ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                   maxLength={10}
-                  disabled={saving}
+                  disabled={saving || isLocked}
                 />
               </div>
             </CardContent>
@@ -657,7 +712,7 @@ export const AddressAndFamilyForm: React.FC<AddressAndFamilyFormProps> = ({
           <div className="flex justify-end pt-3">
             <Button
               onClick={handleSave}
-              disabled={saving || !hasChanges}
+              disabled={saving || !hasChanges || isLocked}
               className="bg-[#001c67] hover:bg-[#001c67]/90 text-white"
             >
               <Save className="w-3 h-3 mr-2" />

@@ -9,19 +9,24 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { Save, GraduationCap, Plus, X } from 'lucide-react';
+import { Save, GraduationCap, Plus, X, Lock, CheckCircle2 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 
 interface EducationDetailsFormProps {
   applicationData: any;
   onSave: (data: any) => void;
   saving: boolean;
+  sectionStatus?: {
+    isCompleted: boolean;
+    isLocked: boolean;
+  };
 }
 
 const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
   applicationData,
   onSave,
-  saving
+  saving,
+  sectionStatus
 }) => {
   const [formData, setFormData] = useState<any>({});
   const [programSelections, setProgramSelections] = useState<any[]>([]);
@@ -361,7 +366,8 @@ const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
                         variant="ghost"
                         size="sm"
                         onClick={() => removeExamination(index)}
-                        className="h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+                        className={`h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 ${isLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        disabled={isLocked}
                       >
                         <X className="h-3 w-3" />
                       </Button>
@@ -379,8 +385,9 @@ const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
                         <Select
                           value={row.passedFailed}
                           onValueChange={(value) => handleEducationDataChange(index, 'passedFailed', value)}
+                          disabled={isLocked}
                         >
-                          <SelectTrigger className="w-full">
+                          <SelectTrigger className={`w-full ${isLocked ? 'bg-gray-50 cursor-not-allowed' : ''}`}>
                             <SelectValue placeholder="Select Status" />
                           </SelectTrigger>
                           <SelectContent>
@@ -402,7 +409,7 @@ const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
         </div>
 
         {/* Add Examination Section */}
-        {getAvailableToAdd().length > 0 && (
+        {getAvailableToAdd().length > 0 && !isLocked && (
           <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 bg-gray-50/50">
             <div className="text-center space-y-4">
               <div>
@@ -421,7 +428,8 @@ const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
                     variant="outline"
                     size="sm"
                     onClick={() => addExamination(exam.value)}
-                    className="h-8 text-xs border-primary text-primary hover:bg-primary hover:text-white"
+                    className={`h-8 text-xs border-primary text-primary hover:bg-primary hover:text-white ${isLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    disabled={isLocked}
                   >
                     <Plus className="h-3 w-3 mr-1" />
                     Add {exam.label}
@@ -450,9 +458,10 @@ const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
                   id="achievements"
                   value={formData.achievements || ""}
                   onChange={(e) => handleTextChange('achievements', e.target.value)}
-                  className="w-full"
+                  className={`w-full ${isLocked ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                   placeholder="Describe your achievements and work experience..."
                   rows={3}
+                  disabled={isLocked}
                 />
               </div>
 
@@ -465,8 +474,9 @@ const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
                   id="college-name"
                   value={formData.collegeName || ""}
                   onChange={(e) => handleTextChange('collegeName', e.target.value)}
-                  className="w-full"
+                  className={`w-full ${isLocked ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                   placeholder="Enter college name"
+                  disabled={isLocked}
                 />
               </div>
             </CardContent>
@@ -492,7 +502,8 @@ const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
                       onCheckedChange={(checked) =>
                         handleEntranceExamChange('kmat', 'selected', checked === true)
                       }
-                      className="cursor-pointer"
+                      className={`cursor-pointer ${isLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      disabled={isLocked}
                     />
                     <Label htmlFor="kmat" className="text-sm font-medium text-purple-800">
                       KMAT
@@ -506,7 +517,8 @@ const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
                         onChange={(e) => handleEntranceExamChange('kmat', 'score', e.target.value)}
                         placeholder="Enter KMAT score"
                         type="number"
-                        className="w-full"
+                        className={`w-full ${isLocked ? 'bg-gray-50 cursor-not-allowed' : ''}`}
+                        disabled={isLocked}
                       />
                     </div>
                   )}
@@ -521,7 +533,8 @@ const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
                       onCheckedChange={(checked) =>
                         handleEntranceExamChange('cmat', 'selected', checked === true)
                       }
-                      className="cursor-pointer"
+                      className={`cursor-pointer ${isLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      disabled={isLocked}
                     />
                     <Label htmlFor="cmat" className="text-sm font-medium text-purple-800">
                       CMAT
@@ -535,7 +548,8 @@ const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
                         onChange={(e) => handleEntranceExamChange('cmat', 'score', e.target.value)}
                         placeholder="Enter CMAT score"
                         type="number"
-                        className="w-full"
+                        className={`w-full ${isLocked ? 'bg-gray-50 cursor-not-allowed' : ''}`}
+                        disabled={isLocked}
                       />
                     </div>
                   )}
@@ -550,7 +564,8 @@ const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
                       onCheckedChange={(checked) =>
                         handleEntranceExamChange('cat', 'selected', checked === true)
                       }
-                      className="cursor-pointer"
+                      className={`cursor-pointer ${isLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      disabled={isLocked}
                     />
                     <Label htmlFor="cat" className="text-sm font-medium text-purple-800">
                       CAT
@@ -564,7 +579,8 @@ const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
                         onChange={(e) => handleEntranceExamChange('cat', 'score', e.target.value)}
                         placeholder="Enter CAT score"
                         type="number"
-                        className="w-full"
+                        className={`w-full ${isLocked ? 'bg-gray-50 cursor-not-allowed' : ''}`}
+                        disabled={isLocked}
                       />
                     </div>
                   )}
@@ -630,7 +646,7 @@ const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
                 id={`group-${index}`}
                 value={isForMBA ? (row.groupSubject || "") : (row.groupTrade || "")}
                 onChange={(e) => handleEducationDataChange(index, isForMBA ? 'groupSubject' : 'groupTrade', e.target.value)}
-                className="w-full"
+                className={`w-full ${isLocked ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                 placeholder={
                   isForMBA ? (
                     row.examination === "+2/VHSE" ? "e.g., Science, Commerce" :
@@ -638,6 +654,7 @@ const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
                     "Group/Subject"
                   ) : "e.g., Electronics, IT"
                 }
+                disabled={isLocked}
               />
             </div>
           )}
@@ -652,11 +669,12 @@ const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
               id={`year-${index}`}
               value={row.yearOfPass || ""}
               onChange={(e) => handleEducationDataChange(index, 'yearOfPass', e.target.value)}
-              className="w-full"
+              className={`w-full ${isLocked ? 'bg-gray-50 cursor-not-allowed' : ''}`}
               placeholder="e.g., 2020"
               type="number"
               min="1950"
               max={new Date().getFullYear()}
+              disabled={isLocked}
             />
           </div>
 
@@ -671,12 +689,13 @@ const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
                 id={`percentage-${index}`}
                 value={row.percentageMarks || ""}
                 onChange={(e) => handleEducationDataChange(index, 'percentageMarks', e.target.value)}
-                className="w-full pr-8"
+                className={`w-full pr-8 ${isLocked ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                 placeholder="85.5"
                 type="number"
                 min="0"
                 max="100"
                 step="0.1"
+                disabled={isLocked}
               />
               <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm">
                 %
@@ -694,8 +713,9 @@ const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
               id={`reg-${index}`}
               value={row.registrationNumber || ""}
               onChange={(e) => handleEducationDataChange(index, 'registrationNumber', e.target.value)}
-              className="w-full"
+              className={`w-full ${isLocked ? 'bg-gray-50 cursor-not-allowed' : ''}`}
               placeholder="Registration number"
+              disabled={isLocked}
             />
           </div>
 
@@ -710,7 +730,8 @@ const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
                     value={row.english || ""}
                     onChange={(e) => handleEducationDataChange(index, 'english', e.target.value)}
                     placeholder="Grade"
-                    className="w-full"
+                    className={`w-full ${isLocked ? 'bg-gray-50 cursor-not-allowed' : ''}`}
+                    disabled={isLocked}
                   />
                 </div>
                 <div className="space-y-1">
@@ -719,7 +740,8 @@ const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
                     value={row.physics || ""}
                     onChange={(e) => handleEducationDataChange(index, 'physics', e.target.value)}
                     placeholder="Grade"
-                    className="w-full"
+                    className={`w-full ${isLocked ? 'bg-gray-50 cursor-not-allowed' : ''}`}
+                    disabled={isLocked}
                   />
                 </div>
                 <div className="space-y-1">
@@ -728,7 +750,8 @@ const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
                     value={row.chemistry || ""}
                     onChange={(e) => handleEducationDataChange(index, 'chemistry', e.target.value)}
                     placeholder="Grade"
-                    className="w-full"
+                    className={`w-full ${isLocked ? 'bg-gray-50 cursor-not-allowed' : ''}`}
+                    disabled={isLocked}
                   />
                 </div>
                 <div className="space-y-1">
@@ -737,7 +760,8 @@ const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
                     value={row.maths || ""}
                     onChange={(e) => handleEducationDataChange(index, 'maths', e.target.value)}
                     placeholder="Grade"
-                    className="w-full"
+                    className={`w-full ${isLocked ? 'bg-gray-50 cursor-not-allowed' : ''}`}
+                    disabled={isLocked}
                   />
                 </div>
               </div>
@@ -771,8 +795,50 @@ const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
     );
   };
 
+  const isLocked = sectionStatus?.isLocked || false;
+  const isCompleted = sectionStatus?.isCompleted || false;
+
   return (
     <div className="space-y-4">
+      {/* Header with Status */}
+      <div className="space-y-1">
+        <div className="flex items-center justify-between">
+          <h1 className="text-xl font-semibold text-gray-900">Education Details</h1>
+          <div className="flex items-center space-x-2">
+            {isCompleted && (
+              <div className="flex items-center space-x-1 text-green-600">
+                <CheckCircle2 className="w-4 h-4" />
+                <span className="text-xs font-medium">Completed</span>
+              </div>
+            )}
+            {isLocked && (
+              <div className="flex items-center space-x-1 text-amber-600">
+                <Lock className="w-4 h-4" />
+                <span className="text-xs font-medium">Locked</span>
+              </div>
+            )}
+          </div>
+        </div>
+        <p className="text-gray-700 text-sm leading-relaxed">
+          Please provide your academic qualifications and achievements
+        </p>
+      </div>
+
+      {/* Locked Section Message */}
+      {isLocked && (
+        <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+          <div className="flex items-center space-x-2">
+            <Lock className="w-4 h-4 text-amber-600" />
+            <span className="text-sm font-medium text-amber-800">
+              This section has been completed and locked
+            </span>
+          </div>
+          <p className="text-xs text-amber-600 mt-1">
+            Contact the administration if you need to make changes to this section.
+          </p>
+        </div>
+      )}
+
       {renderEducationForm()}
 
       {/* Error Summary */}
@@ -792,7 +858,7 @@ const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
       <div className="flex justify-end pt-3">
         <Button
           onClick={handleSubmit}
-          disabled={saving || isLoading}
+          disabled={saving || isLoading || isLocked}
           className="bg-[#001c67] hover:bg-[#001c67]/90 text-white"
         >
           <Save className="w-3 h-3 mr-2" />

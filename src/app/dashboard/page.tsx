@@ -3,7 +3,8 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { User, BookOpen, FileText, Settings, GraduationCap, Bell, Download, HelpCircle, CreditCard, Award } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { User, BookOpen, FileText, Settings, GraduationCap, Bell, Download, HelpCircle, CreditCard, Award, AlertCircle, ArrowRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Cookies from 'js-cookie';
@@ -21,8 +22,18 @@ interface StudentData {
   role: string;
 }
 
+interface ProfileStatus {
+  sectionStatus: {
+    personalDetails: { isCompleted: boolean; isLocked: boolean; };
+    addressFamilyDetails: { isCompleted: boolean; isLocked: boolean; };
+    educationDetails: { isCompleted: boolean; isLocked: boolean; };
+    programSelection: { isCompleted: boolean; isLocked: boolean; };
+  };
+}
+
 export default function StudentDashboard() {
   const [student, setStudent] = useState<StudentData | null>(null);
+  const [profileStatus, setProfileStatus] = useState<ProfileStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
@@ -43,6 +54,9 @@ export default function StudentDashboard() {
         setStudent(response.data);
         // Store user data for sidebar
         localStorage.setItem('studentUser', JSON.stringify(response.data));
+        
+        // Fetch profile status
+        await fetchProfileStatus();
       } else {
         router.push('/auth/login');
       }
@@ -51,6 +65,17 @@ export default function StudentDashboard() {
       router.push('/auth/login');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchProfileStatus = async () => {
+    try {
+      const response = await get<{ success: boolean; data: ProfileStatus }>('/api/v1/auth/student/profile');
+      if (response.success) {
+        setProfileStatus(response.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch profile status:', error);
     }
   };
 
@@ -65,6 +90,28 @@ export default function StudentDashboard() {
   if (!student) {
     return null;
   }
+
+  // Check for incomplete sections
+  const getIncompleteSection = () => {
+    if (!profileStatus?.sectionStatus) return null;
+    
+    const sections = [
+      { key: 'personalDetails', name: 'Personal Details', tab: 'personal' },
+      { key: 'addressFamilyDetails', name: 'Address & Family Details', tab: 'address' },
+      { key: 'educationDetails', name: 'Education Details', tab: 'education' },
+      { key: 'programSelection', name: 'Program Selection', tab: 'program' }
+    ];
+
+    for (const section of sections) {
+      const status = profileStatus.sectionStatus[section.key as keyof typeof profileStatus.sectionStatus];
+      if (!status.isCompleted && !status.isLocked) {
+        return { ...section, status };
+      }
+    }
+    return null;
+  };
+
+  const incompleteSection = getIncompleteSection();
 
   return (
     <DashboardLayout title="Dashboard">
@@ -120,6 +167,32 @@ export default function StudentDashboard() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Profile Completion Prompt */}
+        {incompleteSection && (
+          <Card className="border-orange-200 bg-orange-50">
+            <CardContent className="p-4">
+              <div className="flex items-start space-x-3">
+                <AlertCircle className="w-5 h-5 text-orange-600 mt-0.5" />
+                <div className="flex-1">
+                  <h3 className="font-semibold text-orange-800 mb-1">
+                    Complete Your Profile
+                  </h3>
+                  <p className="text-sm text-orange-700 mb-3">
+                    Your <strong>{incompleteSection.name}</strong> section is pending completion. 
+                    Please complete it to proceed with your application.
+                  </p>
+                  <Link href={`/profile?tab=${incompleteSection.tab}`}>
+                    <Button size="sm" className="bg-orange-600 hover:bg-orange-700">
+                      Complete {incompleteSection.name}
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

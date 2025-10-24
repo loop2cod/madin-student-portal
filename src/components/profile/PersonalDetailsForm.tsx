@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Save, User, Mail, Phone, Calendar, Users, Camera, Upload, X } from 'lucide-react';
+import { Save, User, Mail, Phone, Calendar, Users, Camera, Upload, X, Lock, CheckCircle2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { get, patch } from '@/utilities/AxiosInterceptor';
 
@@ -17,6 +17,10 @@ interface PersonalDetailsFormProps {
   onSave: (data: any) => void;
   saving: boolean;
   onProfilePictureUpdate?: () => void;
+  sectionStatus?: {
+    isCompleted: boolean;
+    isLocked: boolean;
+  };
 }
 
 interface PersonalDetailsData {
@@ -28,11 +32,22 @@ interface PersonalDetailsData {
   profilePicture?: string;
 }
 
+const religions = [
+  "Muslim",
+  "Hindu",
+  "Christian",
+  "Sikh",
+  "Buddhist",
+  "Jain",
+  "Other"
+];
+
 export const PersonalDetailsForm: React.FC<PersonalDetailsFormProps> = ({
   applicationData,
   onSave,
   saving,
-  onProfilePictureUpdate
+  onProfilePictureUpdate,
+  sectionStatus
 }) => {
   const { toast } = useToast();
 
@@ -53,11 +68,17 @@ export const PersonalDetailsForm: React.FC<PersonalDetailsFormProps> = ({
   useEffect(() => {
     if (applicationData?.personalDetails) {
       const details = applicationData.personalDetails;
+      // Normalize religion value to match dropdown options (capitalize first letter)
+      const normalizeReligion = (religion: string) => {
+        if (!religion) return '';
+        return religion.charAt(0).toUpperCase() + religion.slice(1).toLowerCase();
+      };
+
       setFormData({
         fullName: details.fullName || '',
         dob: details.dob ? new Date(details.dob) : undefined,
         gender: details.gender || '',
-        religion: details.religion || '',
+        religion: normalizeReligion(details.religion || ''),
         email: details.email || '',
         profilePicture: details.profilePicture || ''
       });
@@ -83,6 +104,10 @@ export const PersonalDetailsForm: React.FC<PersonalDetailsFormProps> = ({
 
     if (!formData.dob) {
       newErrors.dob = 'Date of birth is required';
+    }
+
+    if (!formData.profilePicture) {
+      newErrors.profilePicture = 'Profile picture is required before saving';
     }
 
     setErrors(newErrors);
@@ -168,6 +193,15 @@ export const PersonalDetailsForm: React.FC<PersonalDetailsFormProps> = ({
         }));
         setHasChanges(true);
 
+        // Clear profile picture error if it exists
+        if (errors.profilePicture) {
+          setErrors(prev => {
+            const newErrors = { ...prev };
+            delete newErrors.profilePicture;
+            return newErrors;
+          });
+        }
+
         // Save the profile picture URL to backend
         try {
           const saveResponse = await patch<any>('/api/v1/auth/student/profile/personal-details', {
@@ -213,16 +247,50 @@ export const PersonalDetailsForm: React.FC<PersonalDetailsFormProps> = ({
     }
   };
 
+  const isLocked = sectionStatus?.isLocked || false;
+  const isCompleted = sectionStatus?.isCompleted || false;
+
   return (
     <Card>
       <CardContent className="p-4">
-        <div className="flex items-center space-x-2 mb-4">
-          <User className="w-4 h-4 text-blue-600" />
-          <h3 className="text-base font-semibold">Personal Information</h3>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center space-x-2">
+            <User className="w-4 h-4 text-blue-600" />
+            <h3 className="text-base font-semibold">Personal Information</h3>
+          </div>
+          <div className="flex items-center space-x-2">
+            {isCompleted && (
+              <div className="flex items-center space-x-1 text-green-600">
+                <CheckCircle2 className="w-4 h-4" />
+                <span className="text-xs font-medium">Completed</span>
+              </div>
+            )}
+            {isLocked && (
+              <div className="flex items-center space-x-1 text-amber-600">
+                <Lock className="w-4 h-4" />
+                <span className="text-xs font-medium">Locked</span>
+              </div>
+            )}
+          </div>
         </div>
 
+        {/* Locked Section Message */}
+        {isLocked && (
+          <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+            <div className="flex items-center space-x-2">
+              <Lock className="w-4 h-4 text-amber-600" />
+              <span className="text-sm font-medium text-amber-800">
+                This section has been completed and locked
+              </span>
+            </div>
+            <p className="text-xs text-amber-600 mt-1">
+              Contact the administration if you need to make changes to this section.
+            </p>
+          </div>
+        )}
+
         {/* Profile Picture Section */}
-        <div className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg mb-4">
+        <div className={`flex items-center space-x-4 p-3 bg-gray-50 rounded-lg mb-4 ${errors.profilePicture ? 'border-2 border-red-300' : ''}`}>
           <Avatar className="w-12 h-12 sm:w-14 sm:h-14">
             <AvatarImage src={formData.profilePicture} alt="Profile Picture" />
             <AvatarFallback className="text-sm sm:text-base">
@@ -231,7 +299,7 @@ export const PersonalDetailsForm: React.FC<PersonalDetailsFormProps> = ({
           </Avatar>
 
           <div className="flex-1">
-            <Label className="text-sm font-medium">Profile Picture</Label>
+            <Label className="text-sm font-medium">Profile Picture *</Label>
             <div className="flex items-center space-x-2 mt-1">
               <input
                 type="file"
@@ -239,12 +307,12 @@ export const PersonalDetailsForm: React.FC<PersonalDetailsFormProps> = ({
                 onChange={handleFileUpload}
                 className="hidden"
                 id="profile-picture-upload"
-                disabled={uploading}
+                disabled={uploading || isLocked}
               />
               <Label
                 htmlFor="profile-picture-upload"
                 className={`flex items-center space-x-1 px-2 py-1 rounded cursor-pointer transition-colors text-xs ${
-                  uploading
+                  uploading || isLocked
                     ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                     : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
                 }`}
@@ -265,6 +333,9 @@ export const PersonalDetailsForm: React.FC<PersonalDetailsFormProps> = ({
             <p className="text-xs text-gray-500 mt-1">
               JPEG, PNG, WebP, max 500KB
             </p>
+            {errors.profilePicture && (
+              <span className="text-xs text-red-500 block mt-1">{errors.profilePicture}</span>
+            )}
           </div>
         </div>
 
@@ -277,8 +348,9 @@ export const PersonalDetailsForm: React.FC<PersonalDetailsFormProps> = ({
               type="text"
               value={formData.fullName}
               onChange={(e) => handleInputChange('fullName', e.target.value)}
-              className={`h-9 ${errors.fullName ? 'border-red-500' : ''}`}
+              className={`h-9 ${errors.fullName ? 'border-red-500' : ''} ${isLocked ? 'bg-gray-50 cursor-not-allowed' : ''}`}
               placeholder="Enter your full name"
+              disabled={isLocked}
             />
             {errors.fullName && (
               <span className="text-xs text-red-500">{errors.fullName}</span>
@@ -295,8 +367,9 @@ export const PersonalDetailsForm: React.FC<PersonalDetailsFormProps> = ({
                 type="email"
                 value={formData.email}
                 onChange={(e) => handleInputChange('email', e.target.value)}
-                className={`pl-7 h-9 ${errors.email ? 'border-red-500' : ''}`}
+                className={`pl-7 h-9 ${errors.email ? 'border-red-500' : ''} ${isLocked ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                 placeholder="your.email@example.com"
+                disabled={isLocked}
               />
             </div>
             {errors.email && (
@@ -312,6 +385,7 @@ export const PersonalDetailsForm: React.FC<PersonalDetailsFormProps> = ({
               onDateChange={(date:any) => handleInputChange('dob', date)}
               placeholder="Select your date of birth"
               className={errors.dob ? 'border-red-500' : ''}
+              disabled={isLocked}
             />
             {errors.dob && (
               <span className="text-xs text-red-500">{errors.dob}</span>
@@ -324,8 +398,9 @@ export const PersonalDetailsForm: React.FC<PersonalDetailsFormProps> = ({
             <Select
               value={formData.gender}
               onValueChange={(value) => handleInputChange('gender', value)}
+              disabled={isLocked}
             >
-              <SelectTrigger className={`h-9 ${errors.gender ? 'border-red-500' : ''}`}>
+              <SelectTrigger className={`h-9 ${errors.gender ? 'border-red-500' : ''} ${isLocked ? 'bg-gray-50 cursor-not-allowed' : ''}`}>
                 <SelectValue placeholder="Select gender" />
               </SelectTrigger>
               <SelectContent>
@@ -341,15 +416,23 @@ export const PersonalDetailsForm: React.FC<PersonalDetailsFormProps> = ({
 
           {/* Religion */}
           <div className="space-y-1 md:col-span-2">
-            <Label htmlFor="religion" className="text-sm">Religion</Label>
-            <Input
-              id="religion"
-              type="text"
+            <Label className="text-sm">Religion</Label>
+            <Select
               value={formData.religion}
-              onChange={(e) => handleInputChange('religion', e.target.value)}
-              className="h-9"
-              placeholder="Enter your religion (optional)"
-            />
+              onValueChange={(value) => handleInputChange('religion', value)}
+              disabled={isLocked}
+            >
+              <SelectTrigger className={`h-9 ${isLocked ? 'bg-gray-50 cursor-not-allowed' : ''}`}>
+                <SelectValue placeholder="Select your religion (optional)" />
+              </SelectTrigger>
+              <SelectContent>
+                {religions.map((religion) => (
+                  <SelectItem key={religion} value={religion}>
+                    {religion}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
@@ -380,7 +463,7 @@ export const PersonalDetailsForm: React.FC<PersonalDetailsFormProps> = ({
           )}
           <Button
             onClick={handleSave}
-            disabled={saving || !hasChanges}
+            disabled={saving || !hasChanges || isLocked}
             className="h-8 px-3 text-sm"
           >
             {saving ? (
