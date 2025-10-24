@@ -105,12 +105,12 @@ interface StudentApplication {
   };
 }
 
-export default function ProfilePage() {
+function ProfileContent() {
   const [application, setApplication] = useState<StudentApplication | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('personal');
   const [saving, setSaving] = useState(false);
-  
+
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
@@ -222,7 +222,7 @@ export default function ProfilePage() {
     } catch (error: any) {
       console.error('Failed to save program selection:', error);
       toast({
-        title: "Error", 
+        title: "Error",
         description: error.response?.data?.message || "Failed to update program selection",
         variant: "destructive",
       });
@@ -288,7 +288,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <DashboardLayout 
+    <DashboardLayout
       title="My Profile"
     >
       <div className="space-y-4 p-2">
@@ -441,5 +441,15 @@ export default function ProfilePage() {
         </Card>
       </div>
     </DashboardLayout>
+  );
+}
+
+export default function ProfilePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">
+      <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+    </div>}>
+      <ProfileContent />
+    </Suspense>
   );
 }
